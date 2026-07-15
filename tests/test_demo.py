@@ -102,6 +102,14 @@ class SyntheticDemoTests(unittest.TestCase):
 
             self.assertTrue(added.is_file())
 
+    def test_quickstarts_do_not_promise_byte_identical_timestamped_bundles(self) -> None:
+        english = Path("docs/en/quickstart.md").read_text(encoding="utf-8")
+        farsi = Path("docs/fa/quickstart.md").read_text(encoding="utf-8")
+
+        self.assertNotIn("Demo execution is deterministic", english)
+        self.assertIn("UTC creation time", english)
+        self.assertIn("هش بستهٔ کامل و PDF می‌تواند میان اجراها متفاوت باشد", farsi)
+
 
 if __name__ == "__main__":
     unittest.main()

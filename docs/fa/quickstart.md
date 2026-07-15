@@ -23,7 +23,7 @@ docker compose run --rm audit-lab python -m audit_lab.cli verify-final --synthet
 
 <div dir="rtl" lang="fa">
 
-اجرای نمونه قطعی، تخیلی و بدون فراخوانی ارائه‌دهنده یا API است. ساخت تازه و بدون حافظهٔ نهان همچنان برای دریافت تصویر پایه و وابستگی‌ها به شبکه نیاز دارد. این تنها اجرای نخست پشتیبانی‌شده است. `workspace/SYNTHETIC_DEMO.txt`، `workspace/final_audit_summary.json` و `workspace/final_audit/file_hashes.csv` را بررسی کنید.
+نمونه از داده‌های ساختگی و قطعی استفاده می‌کند و هیچ فراخوانی ارائه‌دهنده یا API ندارد. هر اجرا زمان ایجاد UTC خودش را ثبت می‌کند؛ بنابراین حتی وقتی هر دو اجرا با موفقیت راستی‌آزمایی می‌شوند، هش بستهٔ کامل و PDF می‌تواند میان اجراها متفاوت باشد. ساخت تازه و بدون حافظهٔ نهان همچنان برای دریافت تصویر پایه و وابستگی‌ها به شبکه نیاز دارد. این تنها اجرای نخست پشتیبانی‌شده است. `workspace/SYNTHETIC_DEMO.txt`، `workspace/final_audit_summary.json` و `workspace/final_audit/file_hashes.csv` را بررسی کنید.
 
 ## ۲. تنظیم منبع مجاز
 
