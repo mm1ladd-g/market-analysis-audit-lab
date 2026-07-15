@@ -146,7 +146,7 @@ def build_assets(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tag", required=True, help="release tag, for example v0.1.2")
+    parser.add_argument("--tag", required=True, help="release tag, for example v0.1.3")
     parser.add_argument("--source-ref", default="HEAD", help="Git commit or ref to archive")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "dist")
     args = parser.parse_args()
