@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows [Semantic Versionin
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-16
+
+### Fixed
+
+- Release validation now verifies the separately fetched remote annotated-tag
+  object, avoiding GitHub Checkout's local tag dereference while still binding
+  every artifact to the exact reviewed source commit on `main`.
+
 ## [0.1.2] - 2026-07-15
 
 ### Added
@@ -74,7 +82,8 @@ First public-source release.
 The annotated `v0.1.0` tag identifies the exact release commit after the checks in
 `docs/en/release-process.md` pass.
 
-[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mm1ladd-g/market-analysis-audit-lab/releases/tag/v0.1.0
