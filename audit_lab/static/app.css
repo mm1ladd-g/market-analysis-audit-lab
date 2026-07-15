@@ -183,6 +183,8 @@ h1 {
 .hero-verdict-boundary span:first-child { border-color: color-mix(in srgb, var(--verdict-color) 25%, transparent); color: var(--muted); }
 .hero-verdict-boundary i { color: var(--verdict-color); font: normal 600 11px/1 ui-monospace, monospace; }
 .hero-verdict-boundary b { font-weight: 400; }
+.hero-disclosure { max-width: 760px; display: grid; gap: 5px; margin-top: 18px; padding: 12px 14px; border: 1px solid rgba(215, 243, 106, .2); border-radius: 12px; color: var(--muted); background: rgba(215, 243, 106, .045); font-size: 12px; line-height: 1.65; }
+.hero-disclosure strong { color: var(--primary); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; }
 .hero-meta { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 38px; padding-top: 22px; border-top: 1px solid var(--border); }
 .hero-meta span { display: grid; gap: 6px; }
 .hero-meta small { color: var(--quiet); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
@@ -342,7 +344,8 @@ html[dir="rtl"] .section-head h2,
 html[dir="rtl"] .public-note h2 { letter-spacing: -.025em; line-height: 1.2; }
 html[dir="rtl"] .section-label,
 html[dir="rtl"] .hero-meta small,
-html[dir="rtl"] .hero-verdict-label { letter-spacing: 0; text-transform: none; }
+html[dir="rtl"] .hero-verdict-label,
+html[dir="rtl"] .hero-disclosure strong { letter-spacing: 0; text-transform: none; }
 html[dir="rtl"] .measure > small { text-align: end; }
 html[dir="rtl"] .text-link:hover i { transform: translate(-2px, -2px); }
 

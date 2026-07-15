@@ -10,6 +10,9 @@ Market Analysis Audit Lab is a local-first, Dockerized research system that turn
 
 The system evaluates configured claims. It does **not** provide investment advice, prove profitability, certify an analyst, or predict future performance.
 
+> [!IMPORTANT]
+> **Reusable engine, separate audit instances:** This repository contains only the generic audit engine and synthetic fixtures. It does not include any branded audit website, named-subject evidence, source videos or transcripts, portraits or logos, licensed market rows, real audit results, or real-instance domain, tunnel, credential, and private deployment configuration. Every real audit is a separate, operator-controlled instance with its own rights, privacy, disclosure, and publication responsibilities.
+
 > [!CAUTION]
 > Only process material you own, are authorized to use, or may lawfully use. A public URL is not a content license. Set `SOURCE_RIGHTS_ACKNOWLEDGED=true` only after checking the applicable platform terms, licenses, permissions, and law.
 
@@ -57,7 +60,7 @@ The demo writes to the mounted `workspace/` directory. Inspect `workspace/final_
 ## Real audit workflow
 
 1. Read [legal and source-rights requirements](docs/en/legal-and-rights.md), [privacy](docs/en/privacy.md), and [methodology](docs/en/methodology.md).
-2. Copy `.env.example` to `.env`; add a subject, channel, inclusive date range, subtitle preferences, scope, and data providers.
+2. Copy `.env.example` to `.env`; add a subject, channel, inclusive date range, subtitle preferences, scope, data providers, `AUDIT_RELATIONSHIP_DISCLOSURE`, and `CORRECTION_CONTACT`.
 3. Confirm source rights and, separately, paid API use. These acknowledgements are deliberate safety gates, not substitutes for permission or legal review.
 4. Run one video through claim extraction and inspect it before spending on a full run.
 5. Verify both the collection pack and final bundle. Human-review every public conclusion.
@@ -104,7 +107,7 @@ docs/fa/         complete Persian documentation
 workspace/       generated local evidence; ignored by Git and Docker build context
 ```
 
-Generated real-world evidence, portraits, thumbnails, transcripts, API caches, credentials, audit reports, and deployment configuration do not belong in this repository.
+Generated real-world evidence, portraits, thumbnails, transcripts, API caches, credentials, audit reports, and real-instance domain, tunnel, or private deployment configuration do not belong in this repository.
 
 ## Documentation
 

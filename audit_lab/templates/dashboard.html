@@ -15,8 +15,8 @@
       document.documentElement.dir = language === "fa" ? "rtl" : "ltr";
     } catch (_) {}
   </script>
-  <link rel="stylesheet" href="/static/app.css?v=0.1.1" />
-  <script src="/static/app.js?v=0.1.1" defer></script>
+  <link rel="stylesheet" href="/static/app.css?v={{ app_version }}" />
+  <script src="/static/app.js?v={{ app_version }}" defer></script>
 </head>
 {% set audit = data.audit_summary or {} %}
 {% set scenario = data.scenario_profile or {} %}
@@ -57,7 +57,7 @@
   <header class="site-header">
     <a class="wordmark" href="#top" aria-label="Market Analysis Audit Lab">
       <span>AUDIT / LAB</span>
-      <small>{% if (data.publication or {}).mode == 'public' %}PUBLIC{% else %}PRIVATE PREVIEW{% endif %} v0.1</small>
+      <small>{% if (data.publication or {}).mode == 'public' %}PUBLIC{% else %}PRIVATE PREVIEW{% endif %} v{{ app_version }}</small>
     </a>
     <nav aria-label="Audit sections" data-en-aria="Audit sections" data-fa-aria="بخش‌های ممیزی">
       {% if complete %}
@@ -129,6 +129,12 @@
           {% else %}
             <h1 id="hero-title" data-en="The audit starts with local evidence." data-fa="ممیزی با شواهد محلی آغاز می‌شود.">The audit starts with local evidence.</h1>
             <p class="hero-lead" data-en="No audit snapshot is available yet. The interface will populate after the local collection, extraction, outcome, scoring, and report stages produce reproducible artifacts." data-fa="هنوز تصویر ممیزی در دسترس نیست. پس از آن‌که مراحل محلی گردآوری، استخراج، نتیجه، امتیازدهی و گزارش، آثار بازتولیدپذیر تولید کنند، این صفحه تکمیل می‌شود.">No audit snapshot is available yet. The interface will populate after the local collection, extraction, outcome, scoring, and report stages produce reproducible artifacts.</p>
+          {% endif %}
+          {% if data.accountability %}
+            <aside class="hero-disclosure" role="note" aria-label="Relationship disclosure" data-en-aria="Relationship disclosure" data-fa-aria="شفاف‌سازی رابطه">
+              <strong data-en="Relationship disclosed" data-fa="رابطه اعلام‌شده">Relationship disclosed</strong>
+              <span>{{ data.accountability.relationship_disclosure }}</span>
+            </aside>
           {% endif %}
           <div class="hero-meta" aria-label="Audit context" data-en-aria="Audit context" data-fa-aria="زمینه ممیزی">
             <span><small data-en="Period" data-fa="بازه">Period</small><b data-preserve-digits>{{ (data.date_range or {}).start or '—' }} → {{ (data.date_range or {}).end or '—' }}</b></span>
@@ -354,6 +360,17 @@
 
     <section class="public-note" aria-labelledby="public-note-title">
       <p class="section-label" data-en="Public interpretation note" data-fa="یادداشت تفسیر عمومی">Public interpretation note</p>
+      {% if data.accountability %}
+        <div>
+          <p class="section-label" data-en="Accountability and corrections" data-fa="پاسخ‌گویی و اصلاحات">Accountability and corrections</p>
+          <h2 data-en="Who commissioned this audit—and how can it be challenged?" data-fa="این ممیزی با چه رابطه‌ای انجام شده و چگونه می‌توان به آن اعتراض کرد؟">Who commissioned this audit—and how can it be challenged?</h2>
+          <p>{{ data.accountability.relationship_disclosure }}</p>
+          <nav class="public-actions" aria-label="Correction channels" data-en-aria="Correction channels" data-fa-aria="مسیرهای درخواست اصلاح">
+            <a href="{{ data.accountability.correction_contact_href }}" rel="noopener"><span data-en="Request a correction or challenge" data-fa="درخواست اصلاح یا اعتراض">Request a correction or challenge</span> · {{ data.accountability.correction_contact }}</a>
+            {% if data.accountability.correction_policy_url %}<a href="{{ data.accountability.correction_policy_url }}" rel="noopener" data-en="Read the correction policy" data-fa="مطالعه سیاست اصلاحات">Read the correction policy</a>{% endif %}
+          </nav>
+        </div>
+      {% endif %}
       <h2 id="public-note-title" data-en="Use this record to inspect a method—not to outsource a financial decision." data-fa="از این سابقه برای بررسی روش استفاده کنید؛ نه برای واگذاری یک تصمیم مالی.">Use this record to inspect a method—not to outsource a financial decision.</h2>
       <p data-en="Market analysis remains uncertain. Review the original evidence, assumptions, data sources, exclusions, and limitations before forming any conclusion." data-fa="تحلیل بازار همواره با عدم قطعیت همراه است. پیش از هر نتیجه‌گیری، شواهد اصلی، فرض‌ها، منابع داده، موارد حذف‌شده و محدودیت‌ها را بررسی کنید.">Market analysis remains uncertain. Review the original evidence, assumptions, data sources, exclusions, and limitations before forming any conclusion.</p>
       <div><span data-en="Not financial advice" data-fa="توصیه مالی نیست">Not financial advice</span><span data-en="Not a certification" data-fa="گواهی نیست">Not a certification</span><span data-en="No profit claim" data-fa="بدون ادعای سود">No profit claim</span></div>
@@ -366,7 +383,7 @@
   </main>
 
   <footer>
-    <span>Market Analysis Audit Lab · v0.1</span>
+    <span>Market Analysis Audit Lab · v{{ app_version }}</span>
     <span data-en="Local evidence · explicit rules · visible limits" data-fa="شواهد محلی · قواعد صریح · محدودیت‌های آشکار">Local evidence · explicit rules · visible limits</span>
     {% if data.collection_id %}<code data-preserve-digits>{{ data.collection_id }}</code>{% endif %}
   </footer>

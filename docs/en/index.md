@@ -4,6 +4,8 @@
 
 Market Analysis Audit Lab is a local-first evidence pipeline for authorized market-analysis content. Start with the synthetic demo; configure a real source only after reviewing rights, privacy, cost, and methodology.
 
+This repository is the generic reusable engine, not a distributable copy of any branded audit instance. Named-subject evidence, videos, transcripts, portraits, logos, licensed market data, real results, and real-instance domain, tunnel, credential, and private deployment configuration remain outside the repository under the operator's control.
+
 ## Operate
 
 - [Quick start](quickstart.md) and [installation](installation.md)

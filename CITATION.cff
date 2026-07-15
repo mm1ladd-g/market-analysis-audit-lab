@@ -8,10 +8,10 @@ abstract: >-
   A local-first, Dockerized, AI-assisted system for producing reviewable,
   hash-verifiable audits of authorized time-stamped market-analysis content.
 license: Apache-2.0
-version: 0.1.1
+version: 0.1.2
 date-released: 2026-07-15
 repository-code: "https://github.com/mm1ladd-g/market-analysis-audit-lab"
-url: "https://github.com/mm1ladd-g/market-analysis-audit-lab/releases/tag/v0.1.1"
+url: "https://github.com/mm1ladd-g/market-analysis-audit-lab/releases/tag/v0.1.2"
 keywords:
   - reproducible research
   - market analysis
@@ -24,7 +24,7 @@ preferred-citation:
   title: "Market Analysis Audit Lab"
   authors:
     - name: "Market Analysis Audit Lab contributors"
-  version: 0.1.1
+  version: 0.1.2
   license: Apache-2.0
 notes: >-
   Cite the exact Git tag or commit, container digest, audit collection ID,

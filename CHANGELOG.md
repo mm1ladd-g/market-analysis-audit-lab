@@ -4,6 +4,29 @@ All notable changes are documented here. The project follows [Semantic Versionin
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-15
+
+### Added
+
+- A reusable deterministic release-asset builder for the website-compatible source ZIP, source TAR.GZ, and bilingual technical-manual ZIP.
+- Automated consistency checks across the Python package version, `pyproject.toml`, `CITATION.cff`, changelog, and release URL.
+- Required public-audit relationship disclosure and correction-channel settings, with strict public-host and unsafe-content validation.
+- A visible accountability block in the public dashboard and Persian-first/English-second PDF.
+
+### Changed
+
+- GitHub releases now publish website-compatible, versioned source and documentation filenames rather than differently named source archives.
+- The release checksum manifest is versioned, uses portable asset basenames, and is included with every release artifact in GitHub provenance attestations.
+- Evidence review, publication review, public snapshots, and final verification now hash-bind the exact accountability record; changing it invalidates both approvals and closes public endpoints.
+- The read-only Compose viewer now receives the three validated public-accountability values required to verify an accepted public snapshot, while continuing to receive no API credential or `.env` mount.
+- Persian technical documentation now matches the English operational coverage section-for-section, with consistent commands, configuration identifiers, legal boundaries, and terminology.
+- Runtime, dashboard assets, health metadata, and market-data User-Agent now derive their version from the package version instead of stale literals.
+- The bilingual PDF uses restrained cover artwork and avoids redundant synthetic-only spill pages while retaining Persian-first ordering and visible safety boundaries.
+
+### Security
+
+- Public correction URLs reject credentials, markup, non-HTTPS schemes, localhost, internal names, and non-global IP addresses; public DTOs reject unknown accountability fields.
+
 ## [0.1.1] - 2026-07-15
 
 ### Added
@@ -51,6 +74,7 @@ First public-source release.
 The annotated `v0.1.0` tag identifies the exact release commit after the checks in
 `docs/en/release-process.md` pass.
 
-[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mm1ladd-g/market-analysis-audit-lab/releases/tag/v0.1.0

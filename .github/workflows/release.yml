@@ -48,17 +48,16 @@ jobs:
           python -m unittest discover -s tests -v
           python scripts/check_public_release.py
           pip-audit --strict --requirement requirements.lock
-      - name: Build Python and source artifacts
+      - name: Build Python and public download artifacts
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p dist
           python -m build --no-isolation
-          prefix="market-analysis-audit-lab-${GITHUB_REF_NAME}/"
-          git archive --format=zip --prefix="$prefix" \
-            --output="dist/market-analysis-audit-lab-${GITHUB_REF_NAME}.zip" "$SOURCE_COMMIT"
-          git archive --format=tar.gz --prefix="$prefix" \
-            --output="dist/market-analysis-audit-lab-${GITHUB_REF_NAME}.tar.gz" "$SOURCE_COMMIT"
+          python scripts/build_public_release_assets.py \
+            --tag "$GITHUB_REF_NAME" \
+            --source-ref "$SOURCE_COMMIT" \
+            --output-dir dist
           cyclonedx-py requirements requirements.lock \
             --pyproject pyproject.toml --spec-version 1.6 --output-reproducible \
             --output-format JSON --output-file dist/python-dependencies.cdx.json
@@ -252,6 +251,13 @@ jobs:
               "container_digest": os.environ["IMAGE_DIGEST"],
               "dockerfile_sha256": sha256("Dockerfile"),
               "requirements_lock_sha256": sha256("requirements.lock"),
+              "public_downloads": {
+                  "source_zip": f"market-analysis-audit-lab-{os.environ['RELEASE_TAG']}-source.zip",
+                  "source_tar_gz": f"market-analysis-audit-lab-{os.environ['RELEASE_TAG']}-source.tar.gz",
+                  "bilingual_docs_zip": (
+                      f"market-analysis-audit-lab-{os.environ['RELEASE_TAG']}-bilingual-docs.zip"
+                  ),
+              },
           }
           Path("dist/release-metadata.json").write_text(
               json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -261,8 +267,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          LC_ALL=C find dist -maxdepth 1 -type f ! -name SHA256SUMS -print0 \
-            | LC_ALL=C sort -z | xargs -0 sha256sum > dist/SHA256SUMS
+          checksum_file="market-analysis-audit-lab-${GITHUB_REF_NAME}-SHA256SUMS.txt"
+          (
+            cd dist
+            LC_ALL=C find . -maxdepth 1 -type f ! -name "$checksum_file" -print0 \
+              | LC_ALL=C sort -z \
+              | xargs -0 sha256sum \
+              | sed 's#  \./#  #'
+          ) > "dist/$checksum_file"
+          test -s "dist/$checksum_file"
       - name: Attest release files
         uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
         with:

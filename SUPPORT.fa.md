@@ -19,15 +19,11 @@
 
 نسخه یا Commit، سیستم‌عامل، نسخهٔ Docker و Compose، دستور، تنظیمات پاک‌سازی‌شده، وضعیت مرحله و خطای حداقلی را ارائه دهید. کلید، Cookie، نام کاربر محلی، دادهٔ خصوصی مالک کانال، رونویسی کامل و ردیف بازار اختصاصی را حذف کنید. برای بازتولید Bug از نمونهٔ ساختگی استفاده کنید.
 
-</div>
-
 ```bash
 python -m audit_lab.cli doctor
 python -m audit_lab.cli status
 python -m unittest discover -s tests -v
 ```
-
-<div dir="rtl" lang="fa">
 
 ## درخواست‌های خارج از پشتیبانی
 

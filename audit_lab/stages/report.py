@@ -450,6 +450,11 @@ def _scope_summary(settings: Settings, manifest: dict) -> dict:
 
 
 def build_dashboard_data(settings: Settings) -> dict:
+    accountability = (
+        settings.require_publication_accountability()
+        if settings.publication_mode == "public"
+        else None
+    )
     manifest = load_manifest(settings)
     if not manifest:
         return {
@@ -459,6 +464,7 @@ def build_dashboard_data(settings: Settings) -> dict:
             "message": "Run collection and manifest stages first.",
             "channel": {"url": settings.youtube_channel_url, "id": settings.youtube_channel_id},
             "date_range": {"start": str(settings.start_date), "end": str(settings.end_date)},
+            "accountability": accountability,
         }
 
     summary_path = settings.pack_dir / "run_summary.json"
@@ -542,6 +548,7 @@ def build_dashboard_data(settings: Settings) -> dict:
         "result_examples": _result_examples(settings, scoped_videos) if scores else [],
         "video_highlights": _video_highlights(settings, scoped_videos) if scores else {"strongest": [], "weakest": []},
         "publication": publication,
+        "accountability": accountability,
         "human_review": {
             "status": human_review.get("status", "not_reviewed"),
             "ledger_valid": bool(human_review.get("ledger_valid")),

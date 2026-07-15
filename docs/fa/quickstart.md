@@ -4,9 +4,9 @@
 
 [فارسی](quickstart.md) · [English](../en/quickstart.md) · [مستندات](index.md)
 
-## ۱. نمونهٔ ساختگی
+## ۱. اجرای نمونهٔ ساختگی
 
-به Git، Docker و Compose v2 نیاز دارید. این نمونه آفلاین، قطعی و کاملاً تخیلی است.
+پیش‌نیازها: Git، Docker Engine یا Desktop، نسخهٔ ۲ Docker Compose و فضای کافی برای تصویر و `workspace/`.
 
 </div>
 
@@ -23,17 +23,26 @@ docker compose run --rm audit-lab python -m audit_lab.cli verify-final --synthet
 
 <div dir="rtl" lang="fa">
 
-اجرای نمونه هیچ فراخوانی به ارائه‌دهنده یا API ندارد؛ ساخت تازه و بدون Cache تصویر همچنان برای دریافت تصویر پایه و وابستگی‌های پین‌شده به اینترنت نیاز دارد. فایل‌های `workspace/SYNTHETIC_DEMO.txt`، خلاصهٔ نهایی و فهرست هش را بررسی کنید.
+اجرای نمونه قطعی، تخیلی و بدون فراخوانی ارائه‌دهنده یا API است. ساخت تازه و بدون حافظهٔ نهان همچنان برای دریافت تصویر پایه و وابستگی‌ها به شبکه نیاز دارد. این تنها اجرای نخست پشتیبانی‌شده است. `workspace/SYNTHETIC_DEMO.txt`، `workspace/final_audit_summary.json` و `workspace/final_audit/file_hashes.csv` را بررسی کنید.
 
-## ۲. منبع مجاز
+## ۲. تنظیم منبع مجاز
 
-[حقوق منبع](legal-and-rights.md) را بخوانید. در `.env` نام، URL و ID کانال، تاریخ شروع و پایان شامل دو سر، زبان، دامنه و منبع بازار را تنظیم کنید. فقط پس از احراز مجوز، `SOURCE_RIGHTS_ACKNOWLEDGED=true` را فعال کنید.
+[حقوق و مجوزها](legal-and-rights.md) را بخوانید. در `.env` مقدار غیرخالی `ANALYST_NAME`، `YOUTUBE_CHANNEL_URL`، `YOUTUBE_CHANNEL_ID`، بازهٔ شامل هر دو سر `START_DATE`/`END_DATE`، دامنهٔ دسته‌ها، زبان‌های زیرنویس، ارائه‌دهندهٔ بازار، `AUDIT_RELATIONSHIP_DISCLOSURE` و `CORRECTION_CONTACT` را تنظیم کنید. فقط هنگامی `SOURCE_RIGHTS_ACKNOWLEDGED=true` را تأیید کنید که گردآوری و پردازش مجاز باشد.
 
 </div>
 
 ```bash
 docker compose run --rm audit-lab python -m audit_lab.cli doctor
 docker compose run --rm audit-lab python -m audit_lab.cli smoke
+```
+
+<div dir="rtl" lang="fa">
+
+## ۳. گردآوری و ثابت‌کردن شواهد
+
+</div>
+
+```bash
 docker compose run --rm audit-lab python -m audit_lab.cli collect
 docker compose run --rm audit-lab python -m audit_lab.cli manifest
 docker compose run --rm audit-lab python -m audit_lab.cli verify
@@ -41,9 +50,11 @@ docker compose run --rm audit-lab python -m audit_lab.cli verify
 
 <div dir="rtl" lang="fa">
 
-## ۳. یک آزمون پولی
+پیش از ادامه دفتر موارد واردشده و حذف‌شده را بررسی کنید. زیرنویس گمشده، شناسهٔ نادرست کانال، دستهٔ ناشناخته، شناسهٔ تکراری و مورد بیرون از بازه باید قابل‌مشاهده بمانند.
 
-حالت API، کلید، شناسهٔ مدل موجود و تأیید هزینه را تنظیم و ابتدا یک ویدئو را بررسی کنید.
+## ۴. یک آزمون پولی
+
+مقدار `AUDIT_MODE=api`، `OPENAI_API_KEY`، شناسهٔ مدل‌های در‌دسترس و `API_COST_ACKNOWLEDGED=true` را تنظیم کنید. متغیرهای قیمت فقط برآورد اختیاری‌اند؛ قیمت رسمی جاری را شخصاً بررسی کنید.
 
 </div>
 
@@ -53,7 +64,9 @@ docker compose run --rm audit-lab python -m audit_lab.cli extract-claims --limit
 
 <div dir="rtl" lang="fa">
 
-پس از بررسی شاهد، شرط، سطح، مدل، مصرف و هش، اجرای کامل را انجام دهید:
+فایل ادعا، خطوط شاهد، شرط‌ها، سطوح، امتیازپذیری، مصرف، شناسهٔ مدل و هش‌ها را بررسی و سپس استخراج باقی ویدئوها را اجرا کنید.
+
+## ۵. پیامدها، امتیازدهی، گزارش و راستی‌آزمایی
 
 </div>
 
@@ -75,10 +88,8 @@ docker compose run --rm audit-lab python -m audit_lab.cli verify-final
 
 <div dir="rtl" lang="fa">
 
-فایل PDF در مسیر `workspace/reports/audit-report.pdf` و با ترتیب فارسی، سپس انگلیسی نوشته می‌شود. برای اجرای داشبورد محلی از `docker compose up` استفاده کنید؛ سرویس به‌صورت پیش‌فرض فقط روی `127.0.0.1:${HOST_PORT:-18765}` گوش می‌دهد.
+فایل PDF در `workspace/reports/audit-report.pdf` با ترتیب فارسی و سپس انگلیسی نوشته می‌شود. داشبورد محلی را با `docker compose up` اجرا کنید؛ سرویس به‌طور پیش‌فرض فقط روی `127.0.0.1:${HOST_PORT:-18765}` گوش می‌دهد.
 
-پیش از انتشار، [فهرست کنترل انصاف](fairness-and-publication.md) و بازبینی انسانی الزامی است.
-
-هنگام آماده‌سازی و بازبینی `PUBLICATION_MODE=private` بماند. برای انتشار واقعی آن را `public` کنید، Report در انتظار را بسازید، شواهد را بپذیرید، داشبورد/PDF و دفتر اختیاری را دوباره تولید و بررسی کنید، `review publication-accept` را ثبت کنید و سپس بدون تغییر اثر پذیرفته‌شده Finalize کنید. هر تغییر بعدی در Report، PDF، دفتر یا بازبینی به پذیرش انتشار و اجرای دوبارهٔ `finalize` نیاز دارد.
+هنگام آماده‌سازی و بازبینی، `PUBLICATION_MODE=private` را حفظ کنید. برای انتشار واقعی آن را `public` کنید، گزارش در انتظار را بسازید، شواهد را بپذیرید، داشبورد/PDF و دفتر اختیاری را دوباره تولید و بررسی کنید، `review publication-accept` را ثبت کنید و سپس بدون تغییر فایل پذیرفته‌شده نهایی‌سازی را انجام دهید. هر تغییر بعدی در گزارش، PDF، دفتر یا بازبینی به پذیرش انتشار و اجرای دوبارهٔ `finalize` نیاز دارد. انتشار را خودکار نکنید؛ ابتدا [فهرست کنترل انتشار منصفانه](fairness-and-publication.md) را کامل کنید.
 
 </div>
