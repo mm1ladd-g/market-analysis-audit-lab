@@ -1,4 +1,4 @@
 -r requirements.txt
-pip==25.3
+pip==26.1.2
 pip-tools==7.5.2
 ruff==0.15.7
