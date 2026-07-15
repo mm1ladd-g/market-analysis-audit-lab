@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import tarfile
 import tempfile
@@ -31,18 +32,20 @@ class PublicReleaseAssetTests(unittest.TestCase):
         tag = f"v{version}"
         source_stem = f"market-analysis-audit-lab-{tag}"
         with tempfile.TemporaryDirectory() as first_dir, tempfile.TemporaryDirectory() as second_dir:
-            first = build_assets(
-                tag=tag,
-                source_ref="HEAD",
-                output_dir=Path(first_dir),
-                allow_dirty=True,
-            )
-            second = build_assets(
-                tag=tag,
-                source_ref="HEAD",
-                output_dir=Path(second_dir),
-                allow_dirty=True,
-            )
+            with patch.dict(os.environ, {"TZ": "UTC"}):
+                first = build_assets(
+                    tag=tag,
+                    source_ref="HEAD",
+                    output_dir=Path(first_dir),
+                    allow_dirty=True,
+                )
+            with patch.dict(os.environ, {"TZ": "Asia/Tehran"}):
+                second = build_assets(
+                    tag=tag,
+                    source_ref="HEAD",
+                    output_dir=Path(second_dir),
+                    allow_dirty=True,
+                )
 
             self.assertEqual(
                 [path.name for path in first],

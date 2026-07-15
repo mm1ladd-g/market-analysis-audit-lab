@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import tomllib
@@ -43,9 +44,11 @@ DOC_PATHS = (
 
 
 def _git(*args: str) -> str:
+    environment = {**os.environ, "TZ": "UTC"}
     result = subprocess.run(
         ["git", *args],
         cwd=ROOT,
+        env=environment,
         capture_output=True,
         text=True,
         check=False,
@@ -146,7 +149,7 @@ def build_assets(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tag", required=True, help="release tag, for example v0.1.3")
+    parser.add_argument("--tag", required=True, help="release tag, for example v0.1.4")
     parser.add_argument("--source-ref", default="HEAD", help="Git commit or ref to archive")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "dist")
     args = parser.parse_args()
