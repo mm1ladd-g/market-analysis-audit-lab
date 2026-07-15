@@ -95,9 +95,11 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
             payload = {
                 "status": "audit_complete",
                 "project_name": "Public audit",
+                "analyst_name": "Public Analyst",
                 "date_range": {"start": "2024-01-01", "end": "2024-01-02"},
                 "audit_summary": {"total_claims": 1, "counted_claims": 1, "categories": []},
                 "scenario_profile": {"total_claims": 1, "total_videos": 1},
+                "hero_verdict": {"key": "supports_following", "title_en": "secret prediction"},
                 "human_review": {"accepted_for_current_artifacts": False},
                 "claims": {"secret": "claim text must not cross the boundary"},
                 "outcomes": {"error": "/Users/operator/private.csv"},
@@ -119,6 +121,8 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
                 result = web._public_dashboard_dto(payload)
             serialized = json.dumps(result, ensure_ascii=False)
             self.assertEqual(result["status"], "private_preview")
+            self.assertEqual(result["analyst_name"], "Public Analyst")
+            self.assertEqual(result["hero_verdict"]["key"], "insufficient")
             for forbidden in (
                 "claim text must not",
                 "secret prediction",

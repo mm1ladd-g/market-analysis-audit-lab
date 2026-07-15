@@ -15,7 +15,7 @@ from fastapi.templating import Jinja2Templates
 
 from audit_lab.settings import Settings, get_settings
 from audit_lab.publication import load_verified_publication_snapshot
-from audit_lab.stages.report import build_dashboard_data
+from audit_lab.stages.report import _hero_verdict, build_dashboard_data
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -26,7 +26,7 @@ settings = get_settings()
 mimetypes.add_type("font/woff2", ".woff2")
 app = FastAPI(
     title="Market Analysis Audit Lab",
-    version="0.1.0",
+    version="0.1.1",
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
@@ -299,7 +299,7 @@ def _public_dashboard_dto(
         claim_ledger_available=claim_ledger_available,
     )
     safe: dict[str, Any] = _pick(data, (
-        "status", "project_name", "collection_id", "created_at_utc", "synthetic_demo",
+        "status", "project_name", "analyst_name", "collection_id", "created_at_utc", "synthetic_demo",
         "report_available", "claim_ledger_available",
     ))
     if data.get("status") == "publication_unavailable":
@@ -330,6 +330,7 @@ def _public_dashboard_dto(
             "ten_plus_claim_video_percent",
         )) or None
     )
+    safe["hero_verdict"] = _hero_verdict(safe["audit_summary"], safe["scenario_profile"])
     outcome = data.get("outcome_summary")
     if isinstance(outcome, dict):
         safe["outcome_summary"] = _pick(outcome, (

@@ -4,6 +4,19 @@ All notable changes are documented here. The project follows [Semantic Versionin
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-15
+
+### Added
+
+- A versioned, four-state hero-verdict policy for `supports_following`, `mixed`, `caution`, and `insufficient` outcomes.
+- Result-first English/Persian dashboard copy that states the direct analytical-usefulness conclusion and its supporting denominator above the fold.
+
+### Changed
+
+- Positive verdicts now require at least 10 audited videos, 30 activated and judged scenarios, 50% evidence coverage, 45/100 weighted alignment, 60% full-or-partial alignment, 50% explicit conditions, and 50% named price levels.
+- Every hero verdict keeps subscriber-profit limitations adjacent to the recommendation; negative results describe unsupported reliance rather than predicting viewer losses.
+- The public dashboard DTO recomputes the verdict from allowlisted audit fields instead of accepting operator-supplied verdict prose.
+
 ## [0.1.0] - 2026-07-15
 
 First public-source release.
@@ -38,5 +51,6 @@ First public-source release.
 The annotated `v0.1.0` tag identifies the exact release commit after the checks in
 `docs/en/release-process.md` pass.
 
-[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mm1ladd-g/market-analysis-audit-lab/releases/tag/v0.1.0

@@ -28,9 +28,76 @@ CATEGORY_LABELS = {
     "local_markets": "Local markets",
 }
 
+HERO_VERDICT_POLICY_VERSION = "hero-verdict-v1"
+HERO_VERDICT_MIN_COUNTED = 30
+HERO_VERDICT_MIN_VIDEOS = 10
+HERO_VERDICT_MIN_EVIDENCE_COVERAGE = 50.0
+HERO_VERDICT_SUPPORT_SCORE = 45.0
+HERO_VERDICT_SUPPORT_ALIGNMENT = 60.0
+HERO_VERDICT_SUPPORT_CONDITIONS = 50.0
+HERO_VERDICT_SUPPORT_LEVELS = 50.0
+HERO_VERDICT_CAUTION_SCORE = 30.0
+HERO_VERDICT_CAUTION_ALIGNMENT = 40.0
+
 
 def _percent(value: int | float, total: int | float) -> float:
     return round(value / total * 100, 1) if total else 0.0
+
+
+def _hero_verdict(audit: dict | None, scenario: dict | None) -> dict | None:
+    """Classify analytical usefulness without inferring subscriber profitability."""
+    if not audit or not scenario:
+        return None
+
+    score = audit.get("score")
+    counted = int(audit.get("counted_claims", 0))
+    coverage = float(audit.get("evidence_coverage_percent", 0) or 0)
+    alignment = float(audit.get("at_least_partial_percent", 0) or 0)
+    aligned = int(audit.get("at_least_partial_count", 0))
+    missed = int(audit.get("incorrect_count", 0))
+    videos = int(scenario.get("total_videos", 0))
+    conditions = float(scenario.get("explicit_condition_percent", 0) or 0)
+    levels = float(scenario.get("level_claim_percent", 0) or 0)
+
+    if (
+        score is None
+        or counted < HERO_VERDICT_MIN_COUNTED
+        or videos < HERO_VERDICT_MIN_VIDEOS
+        or coverage < HERO_VERDICT_MIN_EVIDENCE_COVERAGE
+    ):
+        key = "insufficient"
+        tone = "limited"
+    elif (
+        float(score) >= HERO_VERDICT_SUPPORT_SCORE
+        and alignment >= HERO_VERDICT_SUPPORT_ALIGNMENT
+        and conditions >= HERO_VERDICT_SUPPORT_CONDITIONS
+        and levels >= HERO_VERDICT_SUPPORT_LEVELS
+    ):
+        key = "supports_following"
+        tone = "qualified_positive"
+    elif float(score) < HERO_VERDICT_CAUTION_SCORE and alignment < HERO_VERDICT_CAUTION_ALIGNMENT:
+        key = "caution"
+        tone = "caution"
+    else:
+        key = "mixed"
+        tone = "mixed"
+
+    return {
+        "policy_version": HERO_VERDICT_POLICY_VERSION,
+        "key": key,
+        "tone": tone,
+        "score": score,
+        "counted_claims": counted,
+        "aligned_count": aligned,
+        "alignment_percent": alignment,
+        "missed_count": missed,
+        "missed_percent": _percent(missed, counted),
+        "evidence_coverage_percent": coverage,
+        "videos_audited": videos,
+        "explicit_condition_percent": conditions,
+        "level_claim_percent": levels,
+        "profitability_measured": False,
+    }
 
 
 def _score_presentation(scores: dict | None) -> dict | None:
@@ -416,6 +483,7 @@ def build_dashboard_data(settings: Settings) -> dict:
         claim_rows,
         set(settings.audit_scope_categories),
     )
+    hero_verdict = _hero_verdict(audit_summary, scenario_profile)
     scoped_videos = [
         video for video in manifest.get("videos", [])
         if video.get("category") in set(settings.audit_scope_categories)
@@ -467,6 +535,7 @@ def build_dashboard_data(settings: Settings) -> dict:
         "outcomes": outcomes,
         "scores": scores,
         "audit_summary": audit_summary,
+        "hero_verdict": hero_verdict,
         "scenario_profile": scenario_profile,
         "outcome_summary": outcome_summary,
         "verdict": verdict,

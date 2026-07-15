@@ -15,14 +15,17 @@
       document.documentElement.dir = language === "fa" ? "rtl" : "ltr";
     } catch (_) {}
   </script>
-  <link rel="stylesheet" href="/static/app.css?v=0.1.0" />
-  <script src="/static/app.js?v=0.1.0" defer></script>
+  <link rel="stylesheet" href="/static/app.css?v=0.1.1" />
+  <script src="/static/app.js?v=0.1.1" defer></script>
 </head>
 {% set audit = data.audit_summary or {} %}
 {% set scenario = data.scenario_profile or {} %}
 {% set scope = data.scope or {} %}
 {% set tamper = data.tamper_evidence or {} %}
 {% set outcome = data.outcome_summary or {} %}
+{% set hero_verdict = data.hero_verdict or {} %}
+{% set analyst_en = data.analyst_name or "this analyst" %}
+{% set analyst_fa = data.analyst_name or "این تحلیل‌گر" %}
 {% set complete = audit and scenario %}
 <body data-status="{{ data.status or 'waiting_for_manifest' }}">
   <a class="skip-link" href="#content" data-en="Skip to audit content" data-fa="رفتن به محتوای ممیزی">Skip to audit content</a>
@@ -97,8 +100,29 @@
             {% endif %}
           </div>
           {% if complete %}
-            <h1 id="hero-title" data-en="Evidence first. Conclusions with boundaries." data-fa="اول شواهد؛ سپس نتیجه‌گیری با مرزهای روشن.">Evidence first. Conclusions with boundaries.</h1>
-            <p class="hero-lead" data-en="This public view separates analytical structure, scenario activation, observed outcomes, evidence coverage, and declared limitations. Every number should be read in that context." data-fa="این نمای عمومی، ساختار تحلیل، فعال‌شدن سناریو، نتیجه مشاهده‌شده، پوشش شواهد و محدودیت‌های اعلام‌شده را از هم جدا می‌کند. هر عدد باید در همین زمینه خوانده شود.">This public view separates analytical structure, scenario activation, observed outcomes, evidence coverage, and declared limitations. Every number should be read in that context.</p>
+            <div class="hero-verdict" data-audit-verdict="{{ hero_verdict.key or 'insufficient' }}" data-tone="{{ hero_verdict.tone or 'limited' }}" data-policy="{{ hero_verdict.policy_version or 'hero-verdict-v1' }}">
+              {% if hero_verdict.key == "supports_following" %}
+                <p class="hero-verdict-label" data-en="Audit verdict · worth following" data-fa="نتیجه ممیزی · ارزش دنبال‌کردن دارد">Audit verdict · worth following</p>
+                <h1 id="hero-title" data-en="Yes—{{ analyst_en }} is worth following for disciplined daily market preparation." data-fa="بله؛ تحلیل‌های {{ analyst_fa }} برای آمادگی منظم روزانه در بازار ارزش دنبال‌کردن دارند.">Yes—{{ analyst_en }} is worth following for disciplined daily market preparation.</h1>
+                <p class="hero-lead" data-en="Across {{ hero_verdict.videos_audited }} audited videos, {{ hero_verdict.aligned_count }} of {{ hero_verdict.counted_claims }} activated, verifiable scenarios ({{ hero_verdict.alignment_percent }}%) aligned fully or partly with what price did next. This supports analytical value—not a guarantee of trading profit." data-fa="در {{ hero_verdict.videos_audited }} ویدیوی ممیزی‌شده، {{ hero_verdict.aligned_count }} مورد از {{ hero_verdict.counted_claims }} سناریوی فعال و قابل‌ارزیابی ({{ hero_verdict.alignment_percent }}٪) با حرکت بعدی قیمت کاملاً یا تا حدی هم‌راستا بود. این نتیجه از ارزش تحلیلی پشتیبانی می‌کند؛ نه تضمین سود معاملاتی.">Across {{ hero_verdict.videos_audited }} audited videos, {{ hero_verdict.aligned_count }} of {{ hero_verdict.counted_claims }} activated, verifiable scenarios ({{ hero_verdict.alignment_percent }}%) aligned fully or partly with what price did next. This supports analytical value—not a guarantee of trading profit.</p>
+              {% elif hero_verdict.key == "mixed" %}
+                <p class="hero-verdict-label" data-en="Audit verdict · mixed record" data-fa="نتیجه ممیزی · کارنامه ترکیبی">Audit verdict · mixed record</p>
+                <h1 id="hero-title" data-en="Potentially useful—but follow {{ analyst_en }} selectively." data-fa="تحلیل‌های {{ analyst_fa }} می‌توانند مفید باشند؛ اما باید گزینشی دنبال شوند.">Potentially useful—but follow {{ analyst_en }} selectively.</h1>
+                <p class="hero-lead" data-en="{{ hero_verdict.alignment_percent }}% of activated, verifiable scenarios aligned fully or partly, while {{ hero_verdict.missed_percent }}% missed. Use this channel as one input, verify independently, and apply strict risk controls." data-fa="{{ hero_verdict.alignment_percent }}٪ از سناریوهای فعال و قابل‌ارزیابی کاملاً یا تا حدی هم‌راستا بود و {{ hero_verdict.missed_percent }}٪ محقق نشد. این کانال را فقط یکی از ورودی‌های تصمیم بدانید، مستقل بررسی کنید و مدیریت ریسک سخت‌گیرانه داشته باشید.">{{ hero_verdict.alignment_percent }}% of activated, verifiable scenarios aligned fully or partly, while {{ hero_verdict.missed_percent }}% missed. Use this channel as one input, verify independently, and apply strict risk controls.</p>
+              {% elif hero_verdict.key == "caution" %}
+                <p class="hero-verdict-label" data-en="Audit verdict · evidence does not support reliance" data-fa="نتیجه ممیزی · شواهد از اتکا پشتیبانی نمی‌کند">Audit verdict · evidence does not support reliance</p>
+                <h1 id="hero-title" data-en="The evidence does not support relying on {{ analyst_en }} as a primary decision source." data-fa="شواهد، اتکا به {{ analyst_fa }} به‌عنوان منبع اصلی تصمیم‌گیری را تأیید نمی‌کند.">The evidence does not support relying on {{ analyst_en }} as a primary decision source.</h1>
+                <p class="hero-lead" data-en="Only {{ hero_verdict.alignment_percent }}% of activated, verifiable scenarios aligned fully or partly, while {{ hero_verdict.missed_percent }}% missed. The audited record does not support treating this channel as a dependable trading guide; it still does not predict subscriber profit or loss." data-fa="فقط {{ hero_verdict.alignment_percent }}٪ از سناریوهای فعال و قابل‌ارزیابی کاملاً یا تا حدی هم‌راستا بود و {{ hero_verdict.missed_percent }}٪ محقق نشد. کارنامه ممیزی‌شده، اتکا به این کانال به‌عنوان راهنمای معاملاتی را تأیید نمی‌کند و همچنان سود یا زیان مخاطب را پیش‌بینی نمی‌کند.">Only {{ hero_verdict.alignment_percent }}% of activated, verifiable scenarios aligned fully or partly, while {{ hero_verdict.missed_percent }}% missed. The audited record does not support treating this channel as a dependable trading guide; it still does not predict subscriber profit or loss.</p>
+              {% else %}
+                <p class="hero-verdict-label" data-en="Audit verdict · insufficient evidence" data-fa="نتیجه ممیزی · شواهد ناکافی">Audit verdict · insufficient evidence</p>
+                <h1 id="hero-title" data-en="There is not enough evidence for a responsible follow-or-avoid verdict yet." data-fa="هنوز شواهد کافی برای نتیجه مسئولانه درباره دنبال‌کردن یا نکردن وجود ندارد.">There is not enough evidence for a responsible follow-or-avoid verdict yet.</h1>
+                <p class="hero-lead" data-en="Only {{ hero_verdict.counted_claims or 0 }} activated scenarios were judgeable with {{ hero_verdict.evidence_coverage_percent or 0 }}% evidence coverage. The audit will not force sparse evidence into a recommendation." data-fa="فقط {{ hero_verdict.counted_claims or 0 }} سناریوی فعال با پوشش شواهد {{ hero_verdict.evidence_coverage_percent or 0 }}٪ قابل ارزیابی بود. این ممیزی شواهد محدود را به‌زور به پیشنهاد تبدیل نمی‌کند.">Only {{ hero_verdict.counted_claims or 0 }} activated scenarios were judgeable with {{ hero_verdict.evidence_coverage_percent or 0 }}% evidence coverage. The audit will not force sparse evidence into a recommendation.</p>
+              {% endif %}
+              <div class="hero-verdict-boundary" role="note" aria-label="Verdict interpretation" data-en-aria="Verdict interpretation" data-fa-aria="نحوه تفسیر نتیجه">
+                <span><i aria-hidden="true">✓</i><b data-en="Analytical usefulness measured" data-fa="ارزش تحلیلی اندازه‌گیری شده است">Analytical usefulness measured</b></span>
+                <span><i aria-hidden="true">≠</i><b data-en="Subscriber profit not measured" data-fa="سود مخاطب اندازه‌گیری نشده است">Subscriber profit not measured</b></span>
+              </div>
+            </div>
           {% elif data.status == "publication_unavailable" %}
             <h1 id="hero-title" data-en="The approved public snapshot is not available." data-fa="نسخه عمومی تأییدشده در دسترس نیست.">The approved public snapshot is not available.</h1>
             <p class="hero-lead" data-en="This page fails closed when any approved dashboard, PDF, or optional claim-ledger artifact no longer matches its publication review." data-fa="اگر هر یک از آثار تأییدشده داشبورد، PDF یا دفتر اختیاری ادعا دیگر با بازبینی انتشار یکسان نباشد، این صفحه محتوا را نمایش نمی‌دهد.">This page fails closed when any approved dashboard, PDF, or optional claim-ledger artifact no longer matches its publication review.</p>
