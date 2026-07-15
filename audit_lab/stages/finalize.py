@@ -17,7 +17,7 @@ from audit_lab.publication import (
     build_publication_snapshot,
     invalidate_publication_snapshot,
 )
-from audit_lab.settings import Settings
+from audit_lab.settings import Settings, is_valid_public_accountability_record
 from audit_lab.stages.extract_claims import CLAIM_SCHEMA_VERSION, EVIDENCE_POLICY
 from audit_lab.stages.score_claims import (
     SCORING_POLICY,
@@ -423,6 +423,8 @@ def current_review_binding(settings: Settings) -> dict:
         "scoring_ledger_sha256": sha256_file(required["scoring_ledger"]),
         "scoring_run_id": scoring.get("scoring_run_id"),
     }
+    if settings.publication_mode == "public":
+        binding["accountability"] = settings.require_publication_accountability()
     binding["binding_sha256"] = sha256_json(binding)
     return binding
 
@@ -527,6 +529,8 @@ def record_human_review(
 ) -> dict:
     if action not in {"accepted", "revoked"}:
         raise SystemExit("Review action must be accepted or revoked.")
+    if action == "accepted" and settings.publication_mode == "public":
+        settings.require_publication_accountability()
     reviewer = reviewer.strip()
     notes = notes.strip()
     if not reviewer:
@@ -646,6 +650,7 @@ def record_publication_review(
 ) -> dict:
     if settings.publication_mode != "public":
         raise SystemExit("Publication acceptance requires PUBLICATION_MODE=public.")
+    settings.require_publication_accountability()
     reviewer = reviewer.strip()
     notes = notes.strip()
     if not reviewer:
@@ -775,6 +780,11 @@ def _sanitized_runtime_settings(
         "publication": {
             "mode": settings.publication_mode,
             "public_claim_ledger": settings.public_claim_ledger,
+            "accountability": (
+                settings.require_publication_accountability()
+                if settings.publication_mode == "public"
+                else None
+            ),
         },
         "redactions": [
             "OPENAI_API_KEY",
@@ -918,6 +928,9 @@ def _bundled_review_is_valid(final_dir: Path, final_manifest: dict) -> bool:
             "scoring_run_sha256": sha256_file(components / "scores_summary.json"),
             "scoring_ledger_sha256": sha256_file(components / "scores.jsonl"),
             "scoring_run_id": scoring.get("scoring_run_id"),
+            "accountability": final_manifest.get("publication", {}).get(
+                "accountability"
+            ),
         }
         binding["binding_sha256"] = sha256_json(binding)
         latest = ledger["events"][-1]
@@ -951,7 +964,8 @@ def _bundled_review_is_valid(final_dir: Path, final_manifest: dict) -> bool:
         publication_binding_core = dict(publication_binding)
         publication_binding_core.pop("binding_sha256", None)
         return bool(
-            publication_event.get("action") == "accepted"
+            is_valid_public_accountability_record(binding.get("accountability"))
+            and publication_event.get("action") == "accepted"
             and publication_event.get("event_sha256")
             == snapshot.get("publication_review", {}).get("event_sha256")
             and publication_event.get("binding", {}).get("binding_sha256")
@@ -961,6 +975,8 @@ def _bundled_review_is_valid(final_dir: Path, final_manifest: dict) -> bool:
             and sha256_json(publication_binding_core) == publication_binding_hash
             and snapshot.get("evidence_review_binding", {}).get("binding_sha256")
             == binding["binding_sha256"]
+            and snapshot.get("accountability") == binding.get("accountability")
+            and publication_binding.get("accountability") == binding.get("accountability")
             and sha256_json(snapshot_core) == recorded_snapshot_hash
             and final_manifest.get("publication", {}).get(
                 "publication_review_binding_sha256"
@@ -1114,6 +1130,11 @@ def verify_final_audit(settings: Settings) -> dict:
 
 
 def finalize_audit(settings: Settings) -> Path:
+    accountability = (
+        settings.require_publication_accountability()
+        if settings.publication_mode == "public"
+        else None
+    )
     review = get_human_review_status(settings)
     publication_review = get_publication_review_status(settings)
     if settings.publication_mode == "public" and not review.get("accepted_for_current_artifacts"):
@@ -1274,6 +1295,7 @@ def finalize_audit(settings: Settings) -> Path:
         },
         "publication": {
             "mode": settings.publication_mode,
+            "accountability": accountability,
             "human_review_required": settings.publication_mode == "public",
             "human_review_accepted": bool(review.get("accepted_for_current_artifacts")),
             "human_review_binding_sha256": review.get("binding_sha256"),

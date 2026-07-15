@@ -6,7 +6,7 @@
 
 ## Required presentation context
 
-Every headline includes the audit window, discovered/included/excluded video counts, total/extracted/counted claims, result distribution, non-triggered and insufficient-data counts, scope categories, providers and proxies, model and methodology versions, limitations, relationship disclosure, and correction path.
+Every headline includes the audit window, discovered/included/excluded video counts, total/extracted/counted claims, result distribution, non-triggered and insufficient-data counts, scope categories, providers and proxies, model and methodology versions, limitations, the configured `AUDIT_RELATIONSHIP_DISCLOSURE`, and the configured `CORRECTION_CONTACT`.
 
 Present the aggregate as “scenario-outcome alignment among counted, activated, verifiable claims.” Display the denominator near the percentage. Never imply viewer profits, trading performance, future accuracy, certification, or a guarantee.
 

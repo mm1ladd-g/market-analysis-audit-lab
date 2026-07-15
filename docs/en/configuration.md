@@ -40,10 +40,13 @@ Configuration is loaded from environment variables and optional `.env`. Never co
 | `REPORT_DEFAULT_LANGUAGE` | `en` or `fa` |
 | `PUBLICATION_MODE` | `private` by default; public mode requires publication review |
 | `PUBLIC_CLAIM_LEDGER` | Off by default because claim evidence may reproduce transcript text |
+| `AUDIT_RELATIONSHIP_DISCLOSURE` | Public statement of whether the audit is independent, commissioned, sponsored, promotional, or performed for the subject; required in public mode |
+| `CORRECTION_CONTACT` | Public correction/contact email or URL for the audit operator; required in public mode and never used for secrets |
+| `CORRECTION_POLICY_URL` | Optional public HTTPS page describing correction, challenge, and update handling; credentials, queries, fragments, and non-public hosts are rejected |
 
 Overrides are methodology inputs. Include them in the final hash inventory and review them for subject-specific favoritism.
 
-`PUBLICATION_MODE` is enforced. `private` labels the page as a local preview and closes PDF/claim downloads. In `public` mode, `review accept` must match the current collection, outcome, and scoring hashes; after regenerating and inspecting the dashboard, PDF, and any optional public ledger, `review publication-accept` must bind those exact presentation artifacts. Public `finalize` and downloads remain blocked until both checkpoints are current. `PUBLIC_CLAIM_LEDGER=true` is an additional opt-in; the default reports-only web container intentionally does not mount private analysis ledgers.
+`PUBLICATION_MODE` is enforced. `private` labels the page as a local preview and closes PDF/claim downloads. In `public` mode, nonempty `AUDIT_RELATIONSHIP_DISCLOSURE` and `CORRECTION_CONTACT` values are required, `review accept` must match the current collection, outcome, and scoring hashes, and `review publication-accept` must bind the exact regenerated dashboard, PDF, and any optional public ledger. Public `finalize` and downloads remain blocked until both checkpoints are current. `PUBLIC_CLAIM_LEDGER=true` is an additional opt-in; the default reports-only web container intentionally does not mount private analysis ledgers.
 
 ## OpenAI
 

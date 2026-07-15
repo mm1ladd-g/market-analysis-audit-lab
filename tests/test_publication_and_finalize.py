@@ -25,7 +25,19 @@ from audit_lab.utils.hash import sha256_file, sha256_json
 from audit_lab.utils.jsonio import write_json_atomic
 
 
+PUBLIC_DISCLOSURE = (
+    "This technical audit was commissioned by the publisher; the source analyst did not "
+    "control claim extraction, scoring, or the recorded result."
+)
+PUBLIC_CONTACT = "corrections@example.com"
+PUBLIC_POLICY_URL = "https://audit.example.com/audit-corrections"
+
+
 def demo_settings(workspace: Path, *, publication_mode: str = "private", **values) -> Settings:
+    if publication_mode == "public":
+        values.setdefault("AUDIT_RELATIONSHIP_DISCLOSURE", PUBLIC_DISCLOSURE)
+        values.setdefault("CORRECTION_CONTACT", PUBLIC_CONTACT)
+        values.setdefault("CORRECTION_POLICY_URL", PUBLIC_POLICY_URL)
     return Settings(
         PROJECT_NAME="Market Analysis Audit Lab · Synthetic Demo",
         ANALYST_NAME="Synthetic Research Presenter (fictional)",
@@ -116,6 +128,12 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
                     "failed_files": ["/Users/operator/private.txt"],
                     "error": "private failure",
                 },
+                "accountability": {
+                    "relationship_disclosure": PUBLIC_DISCLOSURE,
+                    "correction_contact": PUBLIC_CONTACT,
+                    "correction_contact_href": f"mailto:{PUBLIC_CONTACT}",
+                    "correction_policy_url": PUBLIC_POLICY_URL,
+                },
             }
             with patch.object(web, "settings", active):
                 result = web._public_dashboard_dto(payload)
@@ -123,6 +141,7 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
             self.assertEqual(result["status"], "private_preview")
             self.assertEqual(result["analyst_name"], "Public Analyst")
             self.assertEqual(result["hero_verdict"]["key"], "insufficient")
+            self.assertEqual(result["accountability"]["correction_contact"], PUBLIC_CONTACT)
             for forbidden in (
                 "claim text must not",
                 "secret prediction",
@@ -134,6 +153,24 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
                 "private failure",
             ):
                 self.assertNotIn(forbidden, serialized)
+
+            payload["accountability"]["internal_note"] = "must remain private"
+            with patch.object(web, "settings", active):
+                rejected = web._public_dashboard_dto(payload)
+            self.assertIsNone(rejected["accountability"])
+
+            payload["accountability"] = {
+                "relationship_disclosure": (
+                    "This otherwise meaningful disclosure includes an unsafe "
+                    "<script>alert(1)</script> payload for testing."
+                ),
+                "correction_contact": PUBLIC_CONTACT,
+                "correction_contact_href": f"mailto:{PUBLIC_CONTACT}",
+                "correction_policy_url": PUBLIC_POLICY_URL,
+            }
+            with patch.object(web, "settings", active):
+                rejected_xss = web._public_dashboard_dto(payload)
+            self.assertIsNone(rejected_xss["accountability"])
 
     def test_urls_drop_userinfo_query_and_fragment(self) -> None:
         value = web._redact_text(
@@ -174,6 +211,67 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
             self.assertEqual(get_publication_review_status(settings)["status"], "stale")
             with self.assertRaisesRegex(SystemExit, "exact dashboard, PDF"):
                 finalize_audit(settings)
+
+    def test_public_accountability_is_visible_and_bound_into_final_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            settings = self._finalize_public_demo(Path(tmp) / "workspace")
+            with patch.object(web, "settings", settings):
+                client = TestClient(web.app)
+                payload = client.get("/api/dashboard").json()
+                dashboard_html = client.get("/").text
+            self.assertEqual(
+                payload["accountability"]["relationship_disclosure"],
+                PUBLIC_DISCLOSURE,
+            )
+            self.assertEqual(
+                payload["accountability"]["correction_contact_href"],
+                f"mailto:{PUBLIC_CONTACT}",
+            )
+            self.assertIn('class="hero-disclosure"', dashboard_html)
+            self.assertIn(PUBLIC_DISCLOSURE, dashboard_html)
+
+            final_manifest = json.loads(
+                (settings.workspace_dir / "final_audit" / "final_manifest.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            runtime = json.loads(
+                (
+                    settings.workspace_dir
+                    / "final_audit"
+                    / "components"
+                    / "runtime_settings.public.json"
+                ).read_text(encoding="utf-8")
+            )
+            snapshot = json.loads(
+                (settings.reports_dir / "publication_manifest.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            expected = settings.require_publication_accountability()
+            self.assertEqual(final_manifest["publication"]["accountability"], expected)
+            self.assertEqual(runtime["publication"]["accountability"], expected)
+            self.assertEqual(snapshot["accountability"], expected)
+            self.assertEqual(snapshot["publication_binding"]["accountability"], expected)
+            self.assertEqual(snapshot["evidence_review_binding"]["accountability"], expected)
+            self.assertTrue(verify_final_audit(settings)["verified"])
+
+    def test_accountability_change_stales_both_public_approvals_and_closes_web(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            settings = self._finalize_public_demo(Path(tmp) / "workspace")
+            changed = demo_settings(
+                settings.workspace_dir,
+                publication_mode="public",
+                CORRECTION_CONTACT="audit-challenges@example.com",
+                SOURCE_MODE="youtube",
+                OPENAI_MODEL_CLAIM_EXTRACTION="synthetic-offline-fixture",
+                OPENAI_MODEL_SCORING="synthetic-offline-fixture",
+            )
+            self.assertEqual(get_human_review_status(changed)["status"], "stale")
+            self.assertEqual(get_publication_review_status(changed)["status"], "stale")
+            with patch.object(web, "settings", changed):
+                response = TestClient(web.app).get("/api/dashboard").json()
+            self.assertEqual(response["status"], "publication_unavailable")
 
     def test_dashboard_replacement_closes_every_public_endpoint(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -239,6 +337,64 @@ class PublicDashboardBoundaryTests(unittest.TestCase):
 
 
 class ReviewAndFinalizationTests(unittest.TestCase):
+    def test_public_report_review_and_finalize_require_accountability(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            seed_synthetic_demo(workspace)
+            settings = demo_settings(
+                workspace,
+                publication_mode="public",
+                AUDIT_RELATIONSHIP_DISCLOSURE=None,
+                CORRECTION_CONTACT=None,
+                SOURCE_MODE="youtube",
+                OPENAI_MODEL_CLAIM_EXTRACTION="synthetic-offline-fixture",
+                OPENAI_MODEL_SCORING="synthetic-offline-fixture",
+            )
+            for operation in (
+                lambda: write_dashboard_data(settings),
+                lambda: record_human_review(
+                    settings,
+                    action="accepted",
+                    reviewer="Evidence reviewer",
+                    notes="Reviewed the exact evidence set.",
+                ),
+                lambda: finalize_audit(settings),
+            ):
+                with self.assertRaisesRegex(SystemExit, "accountability metadata"):
+                    operation()
+
+    def test_accountability_change_makes_public_evidence_review_stale(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            seed_synthetic_demo(workspace)
+            settings = demo_settings(
+                workspace,
+                publication_mode="public",
+                SOURCE_MODE="youtube",
+                OPENAI_MODEL_CLAIM_EXTRACTION="synthetic-offline-fixture",
+                OPENAI_MODEL_SCORING="synthetic-offline-fixture",
+            )
+            accepted = record_human_review(
+                settings,
+                action="accepted",
+                reviewer="Evidence reviewer",
+                notes="Reviewed the evidence and declared relationship.",
+            )
+            self.assertTrue(accepted["accepted_for_current_artifacts"])
+
+            changed = demo_settings(
+                workspace,
+                publication_mode="public",
+                AUDIT_RELATIONSHIP_DISCLOSURE=(
+                    "This audit was independently funded by a separate publisher, and the "
+                    "source analyst did not control any extraction or scoring decisions."
+                ),
+                SOURCE_MODE="youtube",
+                OPENAI_MODEL_CLAIM_EXTRACTION="synthetic-offline-fixture",
+                OPENAI_MODEL_SCORING="synthetic-offline-fixture",
+            )
+            self.assertEqual(get_human_review_status(changed)["status"], "stale")
+
     def test_review_acceptance_is_hash_bound_and_becomes_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"

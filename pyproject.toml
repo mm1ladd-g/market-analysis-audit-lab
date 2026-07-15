@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "market-analysis-audit-lab"
-version = "0.1.1"
+version = "0.1.2"
 description = "A local-first, Dockerized, AI-assisted evidence pipeline for auditing market-analysis videos."
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.15"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{name = "Market Analysis Audit Lab contributors"}]
@@ -17,6 +17,8 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [

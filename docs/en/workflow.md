@@ -4,7 +4,7 @@
 
 ## Preflight
 
-Record the operator, purpose, relationship to the subject, permitted sources, date boundary, timezone, categories, providers, expected video count, budget ceiling, review owner, and retention period. Back up an existing workspace before reuse.
+Record the operator, purpose, permitted sources, date boundary, timezone, categories, providers, expected video count, budget ceiling, review owner, retention period, `AUDIT_RELATIONSHIP_DISCLOSURE`, and `CORRECTION_CONTACT`. Back up an existing workspace before reuse.
 
 ```bash
 python -m audit_lab.cli doctor

@@ -1,11 +1,160 @@
 from __future__ import annotations
 
 import re
+from ipaddress import ip_address
 from datetime import date
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+_PUBLIC_DISCLOSURE_PLACEHOLDERS = {
+    "coming soon",
+    "example",
+    "n/a",
+    "none",
+    "placeholder",
+    "replace me",
+    "tbd",
+    "test",
+    "todo",
+}
+_CREDENTIAL_LIKE = re.compile(
+    r"(?:sk-(?:proj-)?[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|"
+    r"xox[baprs]-[A-Za-z0-9-]{20,}|AIza[A-Za-z0-9_-]{20,})"
+)
+_EMAIL = re.compile(
+    r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+    r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+"
+    r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+)
+_NON_PUBLIC_HOST_SUFFIXES = (
+    ".example",
+    ".home.arpa",
+    ".internal",
+    ".invalid",
+    ".local",
+    ".localhost",
+    ".test",
+)
+
+
+def _normalized_public_hostname(value: str, *, field_name: str) -> str:
+    try:
+        host = value.encode("idna").decode("ascii").casefold().rstrip(".")
+    except UnicodeError as exc:
+        raise ValueError(f"{field_name} contains an invalid hostname") from exc
+    if not host or host == "localhost" or host.endswith(_NON_PUBLIC_HOST_SUFFIXES):
+        raise ValueError(f"{field_name} must use a publicly reachable hostname")
+    try:
+        address = ip_address(host)
+    except ValueError:
+        if "." not in host or not all(
+            re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+            for label in host.split(".")
+        ):
+            raise ValueError(f"{field_name} contains an invalid hostname") from None
+    else:
+        if not address.is_global:
+            raise ValueError(
+                f"{field_name} must not use a private, reserved, loopback, or link-local address"
+            )
+    return host
+
+
+def _normalized_public_https_url(value: str, *, field_name: str) -> str:
+    parsed = urlsplit(value)
+    if (
+        parsed.scheme.casefold() != "https"
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+        or any(character.isspace() for character in value)
+    ):
+        raise ValueError(
+            f"{field_name} must be a plain HTTPS URL without credentials, query, or fragment"
+        )
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError(f"{field_name} contains an invalid port") from exc
+    host = _normalized_public_hostname(parsed.hostname, field_name=field_name)
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    netloc = f"{host}:{port}" if port is not None else host
+    return urlunsplit(("https", netloc, parsed.path or "/", "", ""))
+
+
+def _normalized_relationship_disclosure(value: str) -> str:
+    normalized = " ".join(value.split())
+    if (
+        len(normalized) < 40
+        or len(normalized) > 1500
+        or len(normalized.split()) < 6
+        or normalized.casefold() in _PUBLIC_DISCLOSURE_PLACEHOLDERS
+        or "<" in normalized
+        or ">" in normalized
+    ):
+        raise ValueError(
+            "AUDIT_RELATIONSHIP_DISCLOSURE must be a meaningful 6+ word disclosure "
+            "between 40 and 1500 characters"
+        )
+    if _CREDENTIAL_LIKE.search(normalized):
+        raise ValueError("AUDIT_RELATIONSHIP_DISCLOSURE must not contain a credential")
+    return normalized
+
+
+def _normalized_correction_contact(value: str) -> str:
+    normalized = value.strip()
+    if len(normalized) > 500 or _CREDENTIAL_LIKE.search(normalized):
+        raise ValueError("CORRECTION_CONTACT is invalid or contains a credential")
+    if _EMAIL.fullmatch(normalized):
+        local, domain = normalized.rsplit("@", 1)
+        public_domain = _normalized_public_hostname(domain, field_name="CORRECTION_CONTACT")
+        return f"{local}@{public_domain}"
+    return _normalized_public_https_url(normalized, field_name="CORRECTION_CONTACT")
+
+
+def is_valid_public_accountability_record(record: Any) -> bool:
+    """Validate the exact untrusted DTO admitted into a public artifact set."""
+    if not isinstance(record, dict) or set(record) != {
+        "relationship_disclosure",
+        "correction_contact",
+        "correction_contact_href",
+        "correction_policy_url",
+    }:
+        return False
+    disclosure = record.get("relationship_disclosure")
+    contact = record.get("correction_contact")
+    contact_href = record.get("correction_contact_href")
+    policy_url = record.get("correction_policy_url")
+    if not isinstance(disclosure, str) or not isinstance(contact, str):
+        return False
+    try:
+        if _normalized_relationship_disclosure(disclosure) != disclosure:
+            return False
+        if _normalized_correction_contact(contact) != contact:
+            return False
+        expected_href = f"mailto:{contact}" if _EMAIL.fullmatch(contact) else contact
+        if contact_href != expected_href:
+            return False
+        if policy_url is not None and (
+            not isinstance(policy_url, str)
+            or _normalized_public_https_url(
+                policy_url,
+                field_name="CORRECTION_POLICY_URL",
+            )
+            != policy_url
+        ):
+            return False
+    except ValueError:
+        return False
+    return True
 
 
 class Settings(BaseSettings):
@@ -72,6 +221,12 @@ class Settings(BaseSettings):
     report_default_language: str = Field(default="en", pattern="^(en|fa)$", alias="REPORT_DEFAULT_LANGUAGE")
     publication_mode: str = Field(default="private", pattern="^(private|public)$", alias="PUBLICATION_MODE")
     public_claim_ledger: bool = Field(default=False, alias="PUBLIC_CLAIM_LEDGER")
+    audit_relationship_disclosure: str | None = Field(
+        default=None,
+        alias="AUDIT_RELATIONSHIP_DISCLOSURE",
+    )
+    correction_contact: str | None = Field(default=None, alias="CORRECTION_CONTACT")
+    correction_policy_url: str | None = Field(default=None, alias="CORRECTION_POLICY_URL")
 
     @field_validator(
         "openai_api_key",
@@ -80,6 +235,9 @@ class Settings(BaseSettings):
         "category_overrides_file",
         "asset_map_file",
         "market_csv_dir",
+        "audit_relationship_disclosure",
+        "correction_contact",
+        "correction_policy_url",
         "openai_claim_input_usd_per_1m",
         "openai_claim_cached_input_usd_per_1m",
         "openai_claim_output_usd_per_1m",
@@ -93,6 +251,30 @@ class Settings(BaseSettings):
         if isinstance(value, str) and not value.strip():
             return None
         return value
+
+    @field_validator("audit_relationship_disclosure")
+    @classmethod
+    def validate_audit_relationship_disclosure(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return _normalized_relationship_disclosure(value)
+
+    @field_validator("correction_contact")
+    @classmethod
+    def validate_correction_contact(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return _normalized_correction_contact(value)
+
+    @field_validator("correction_policy_url")
+    @classmethod
+    def validate_correction_policy_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if len(normalized) > 500 or _CREDENTIAL_LIKE.search(normalized):
+            raise ValueError("CORRECTION_POLICY_URL is invalid or contains a credential")
+        return _normalized_public_https_url(normalized, field_name="CORRECTION_POLICY_URL")
 
     @model_validator(mode="after")
     def validate_window(self) -> "Settings":
@@ -139,6 +321,31 @@ class Settings(BaseSettings):
             raise SystemExit("OPENAI_API_KEY is required for this stage.")
         if not self.api_cost_acknowledged:
             raise SystemExit("API_COST_ACKNOWLEDGED must be true before a paid API stage can run.")
+
+    def require_publication_accountability(self) -> dict[str, str | None]:
+        """Return the public disclosure record or stop a public publication workflow."""
+        if self.publication_mode != "public":
+            raise SystemExit(
+                "Public accountability fields are only required when PUBLICATION_MODE=public."
+            )
+        missing = []
+        if not self.audit_relationship_disclosure:
+            missing.append("AUDIT_RELATIONSHIP_DISCLOSURE")
+        if not self.correction_contact:
+            missing.append("CORRECTION_CONTACT")
+        if missing:
+            raise SystemExit(
+                "Public publication requires meaningful accountability metadata: "
+                + ", ".join(missing)
+            )
+        contact = self.correction_contact
+        contact_href = f"mailto:{contact}" if _EMAIL.fullmatch(contact) else contact
+        return {
+            "relationship_disclosure": self.audit_relationship_disclosure,
+            "correction_contact": contact,
+            "correction_contact_href": contact_href,
+            "correction_policy_url": self.correction_policy_url,
+        }
 
     @property
     def openai_api_key_value(self) -> str | None:

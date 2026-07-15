@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import pandas as pd
 import yfinance as yf
 
+from audit_lab import __version__
 from audit_lab.settings import Settings
 from audit_lab.utils.hash import sha256_file, sha256_json
 from audit_lab.utils.jsonio import write_json_atomic
@@ -340,7 +341,11 @@ def _request_bytes(
         try:
             request = urllib.request.Request(  # noqa: S310 - scheme and host are allowlisted above
                 url,
-                headers={"User-Agent": "MarketAnalysisAuditLab/0.1 (+reproducible-research)"},
+                headers={
+                    "User-Agent": (
+                        f"MarketAnalysisAuditLab/{__version__} (+reproducible-research)"
+                    )
+                },
             )
             with urllib.request.urlopen(  # noqa: S310 - scheme and host are allowlisted above
                 request, timeout=timeout

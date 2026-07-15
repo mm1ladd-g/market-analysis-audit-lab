@@ -4,34 +4,90 @@
 
 [فارسی](configuration.md) · [English](../en/configuration.md) · [مستندات](index.md)
 
-تنظیمات از Environment و `.env` خوانده می‌شوند. `.env` را Commit نکنید؛ دستور `doctor` فقط خلاصهٔ پاک‌سازی‌شده چاپ می‌کند.
+تنظیمات از متغیرهای محیطی و فایل اختیاری `.env` خوانده می‌شوند. فایل `.env` را در Git ثبت نکنید. دستور `python -m audit_lab.cli doctor` فقط خلاصه‌ای پاک‌سازی‌شده چاپ می‌کند.
 
-## منبع
+## منبع و بازه
 
-- `ANALYST_NAME`، `YOUTUBE_CHANNEL_URL` و `YOUTUBE_CHANNEL_ID`: هویت منبع واقعی و الزامی؛ URL و ID کنترل متقابل می‌شوند.
-- `SOURCE_MODE=provided` برای ورودی مجاز اپراتور و `youtube` برای Adapter پلتفرمِ دارای Gate است؛ `PROVIDED_SOURCES_DIR` محل Import را تعیین می‌کند.
-- `START_DATE` و `END_DATE`: بازهٔ ISO شامل دو سر؛ `MAX_AUDIT_DAYS` و `MAX_SCAN_ITEMS` محافظ حجم هستند.
-- `SOURCE_RIGHTS_ACKNOWLEDGED`: ثبت تأیید اپراتور، نه مجوز حقوقی.
-- `SUBTITLE_LANGUAGES`: ترتیب ترجیح زیرنویس؛ `REQUIRE_SUBTITLES_FOR_AUDIT` مانع ساخت شاهد خیالی می‌شود.
-- `STRICT_SOURCE_CHANNEL`: رد فرادادهٔ کانال دیگر؛ `COLLECT_THUMBNAILS` پیش‌فرض خاموش است.
-- `TRANSCRIPTION_FALLBACK`، مدل، زبان/Prompt و اندازهٔ Chunk، گفتاربه‌متنِ صوت مجاز را کنترل می‌کنند؛ `RETAIN_RAW_AUDIO` پیش‌فرض خاموش است.
+</div>
 
-## دامنه و بازار
+| متغیر | کاربرد |
+|---|---|
+| `PROJECT_NAME` | عنوان خنثی گزارش |
+| `ANALYST_NAME` | نام نمایشی موضوع؛ برای گردآوری واقعی الزامی است |
+| `SOURCE_MODE` | مقدار `provided` برای ورودی مجاز اپراتور یا `youtube` برای رابط پلتفرم دارای دروازهٔ حقوقی |
+| `PROVIDED_SOURCES_DIR` | پوشهٔ ورود داده در حالت `provided` |
+| `YOUTUBE_CHANNEL_URL` / `YOUTUBE_CHANNEL_ID` | هویت منبع؛ هر دو الزامی و با یکدیگر تطبیق داده می‌شوند |
+| `START_DATE` / `END_DATE` | بازهٔ تاریخ ISO شامل هر دو سر |
+| `MAX_AUDIT_DAYS` | محافظ در برابر اجرای ناخواسته با بازهٔ بسیار بزرگ |
+| `MAX_SCAN_ITEMS` | بیشترین تعداد بارگذاری بررسی‌شده هنگام اثبات مرز آغاز |
+| `SOURCE_RIGHTS_ACKNOWLEDGED` | تأیید صریح اپراتور؛ الزامی است، اما مجوز حقوقی ایجاد نمی‌کند |
+| `SUBTITLE_LANGUAGES` | ترتیب ترجیح زبان زیرنویس، جداشده با ویرگول |
+| `REQUIRE_SUBTITLES_FOR_AUDIT` | در نبود زیرنویس، حذف می‌کند و شاهد نمی‌سازد |
+| `STRICT_SOURCE_CHANNEL` | فرادادهٔ متعلق به کانال دیگر را رد می‌کند |
+| `COLLECT_THUMBNAILS` | پیش‌فرض خاموش؛ فقط در صورت ضرورت و داشتن مجوز فعال شود |
+| `TRANSCRIPTION_FALLBACK` | رونویسی صوت مجاز را برای ویدئوی بدون زیرنویس فعال می‌کند |
+| `OPENAI_TRANSCRIPTION_MODEL` | مدل رونویسی پشتیبانی‌شده توسط رابط |
+| `TRANSCRIPTION_LANGUAGE` / `TRANSCRIPTION_PROMPT` | راهنمای اختیاری رونویسی؛ هرگز برای بازنویسی معنا استفاده نشود |
+| `TRANSCRIPTION_CHUNK_SECONDS` | اندازهٔ قطعهٔ صوت مجاز |
+| `RETAIN_RAW_AUDIO` | پیش‌فرض خاموش؛ صوت خام فقط در صورت ضرورت و داشتن مجوز حفظ شود |
 
-- `AUDIT_SCOPE_CATEGORIES`: شناسه‌های دسته؛ فایل‌های `CATEGORY_OVERRIDES_FILE` و `ASSET_MAP_FILE` ورودی نسخه‌بندی‌شدهٔ روش‌شناسی هستند.
-- `PRICE_OUTCOME_ONLY`: زمینهٔ غیرقیمتی را از امتیاز بیرون نگه می‌دارد.
-- `INTERNATIONAL_MARKET_PROVIDER`: مقدار `csv` برای دادهٔ دقیق/مجاز یا `yfinance` برای Proxy شفاف.
-- `MARKET_CSV_DIR` و `REPORT_DEFAULT_LANGUAGE`.
-- `PUBLICATION_MODE` پیش‌فرض `private` و `PUBLIC_CLAIM_LEDGER` خاموش است، زیرا شاهد می‌تواند متن رونویسی را بازنمایی کند.
+<div dir="rtl" lang="fa">
 
-`PUBLICATION_MODE` واقعاً اعمال می‌شود: `private` صفحه را پیش‌نمایش محلی می‌نامد و دانلود PDF/دفتر را می‌بندد. در حالت `public`، فرمان `review accept` باید با هش فعلی مجموعه، پیامد و امتیاز منطبق باشد؛ پس از بازتولید و بررسی داشبورد، PDF و هر دفتر عمومی اختیاری، `review publication-accept` باید دقیقاً همین آثار ارائه را به هش متصل کند. `finalize` عمومی و دانلودها تا زمانی که هر دو ایست بازرسی فعلی نباشند مسدود می‌مانند. `PUBLIC_CLAIM_LEDGER=true` اجازه‌ای جداگانه است و Container وبِ امن و پیش‌فرض عمداً دفتر خصوصی تحلیل را Mount نمی‌کند.
+## دامنه و پیامدها
+
+</div>
+
+| متغیر | کاربرد |
+|---|---|
+| `AUDIT_SCOPE_CATEGORIES` | شناسهٔ دسته‌ها با حروف کوچک و جداشده با ویرگول |
+| `CATEGORY_OVERRIDES_FILE` | فایل JSON اختیاری و بازبینی‌شده برای نگاشت شناسهٔ ویدئو به دسته |
+| `ASSET_MAP_FILE` | فایل JSON اختیاری و بازبینی‌شده برای نگاشت دارایی و ارائه‌دهنده |
+| `PRICE_OUTCOME_ONLY` | ادعاهای زمینه‌ای را بیرون از امتیازدهی قیمت نگه می‌دارد |
+| `INTERNATIONAL_MARKET_PROVIDER` | مقدار `csv` برای ردیف‌های دقیق/دارای مجوز اپراتور یا `yfinance` برای نمادهای جایگزین مستند |
+| `MARKET_CSV_DIR` | پوشهٔ سری‌های CSV تنظیم‌شده |
+| `REPORT_DEFAULT_LANGUAGE` | مقدار `en` یا `fa` |
+| `PUBLICATION_MODE` | پیش‌فرض `private`؛ حالت عمومی به بازبینی انتشار نیاز دارد |
+| `PUBLIC_CLAIM_LEDGER` | پیش‌فرض خاموش، زیرا شواهد ادعا ممکن است متن رونویسی را بازنمایی کند |
+| `AUDIT_RELATIONSHIP_DISCLOSURE` | توضیح عمومی دربارهٔ مستقل، سفارشی، دارای حمایت مالی، تبلیغاتی یا انجام‌شده برای خود موضوع بودن ممیزی؛ در حالت عمومی الزامی است |
+| `CORRECTION_CONTACT` | ایمیل یا نشانی عمومی اپراتور برای اصلاحات؛ در حالت عمومی الزامی است و نباید حاوی اطلاعات محرمانه باشد |
+| `CORRECTION_POLICY_URL` | صفحهٔ عمومی و اختیاری HTTPS برای توضیح رسیدگی به اصلاح، اعتراض و به‌روزرسانی؛ اعتبارنامه، query، fragment و میزبان غیرعمومی پذیرفته نمی‌شود |
+
+<div dir="rtl" lang="fa">
+
+فایل‌های override ورودی روش‌شناسی هستند. آن‌ها را در فهرست هش نهایی قرار دهید و از نظر جانبداری ویژه برای یک موضوع بازبینی کنید.
+
+مقدار `PUBLICATION_MODE` واقعاً اعمال می‌شود. حالت `private` صفحه را پیش‌نمایش محلی می‌نامد و دانلود PDF و دفتر ادعا را می‌بندد. در حالت `public`، مقدارهای `AUDIT_RELATIONSHIP_DISCLOSURE` و `CORRECTION_CONTACT` باید خالی نباشند، `review accept` باید با هش فعلی مجموعه، پیامد و امتیاز منطبق باشد و `review publication-accept` باید داشبورد، PDF و دفتر عمومی اختیاریِ بازتولیدشده را دقیقاً به هش متصل کند. `finalize` عمومی و دانلودها تا زمانی که هر دو ایست بازبینی معتبر نباشند مسدود می‌مانند. مقدار `PUBLIC_CLAIM_LEDGER=true` یک اجازهٔ جداگانه است؛ کانتینر پیش‌فرض وب که فقط گزارش‌ها را می‌بیند، عمداً دفترهای خصوصی تحلیل را متصل نمی‌کند.
 
 ## OpenAI
 
-- `AUDIT_MODE=api`، `OPENAI_API_KEY` و `API_COST_ACKNOWLEDGED=true` برای کار پولی لازم‌اند.
-- شناسهٔ دقیق و موجود مدل استخراج و امتیاز را تنظیم کنید؛ واژهٔ «جدیدترین» برای سابقهٔ بازتولید مناسب نیست.
-- Concurrency، Timeout، Retry و قیمت اختیاری را محافظه‌کارانه تنظیم و قیمت رسمی را هر بار بررسی کنید.
+</div>
 
-`WORKSPACE_DIR` باید یک Volume اختصاصی و کنترل‌شده باشد، نه ریشهٔ مخزن، Home یا Web Root.
+| متغیر | کاربرد |
+|---|---|
+| `AUDIT_MODE` | مقدار `offline` یا `api` |
+| `OPENAI_API_KEY` | کلید محرمانهٔ زمان اجرا؛ هرگز ثبت یا داخل تصویر ساخته نمی‌شود |
+| `API_COST_ACKNOWLEDGED` | پیش از کار پولیِ بدون حافظهٔ نهان الزامی است |
+| `OPENAI_MODEL_CLAIM_EXTRACTION` | شناسهٔ دقیق و در‌دسترس مدل استخراج |
+| `OPENAI_MODEL_SCORING` | شناسهٔ دقیق و در‌دسترس مدل امتیازدهی |
+| `OPENAI_CLAIM_REASONING_EFFORT` | میزان استدلال مدل استخراج |
+| `OPENAI_SCORING_REASONING_EFFORT` | میزان استدلال مدل امتیازدهی |
+| `OPENAI_CONCURRENCY` | تعداد فراخوانی هم‌زمان؛ با مقدار کم آغاز کنید |
+| `OPENAI_TIMEOUT_SECONDS` / `OPENAI_MAX_RETRIES` | کنترل وقفه و تلاش دوباره |
+| `OPENAI_CLAIM_INPUT_USD_PER_1M` | برآورد اختیاری هزینهٔ ورودی استخراج به‌ازای یک میلیون توکن |
+| `OPENAI_CLAIM_CACHED_INPUT_USD_PER_1M` | برآورد اختیاری هزینهٔ ورودی ذخیره‌شدهٔ استخراج |
+| `OPENAI_CLAIM_OUTPUT_USD_PER_1M` | برآورد اختیاری هزینهٔ خروجی استخراج |
+| `OPENAI_SCORING_INPUT_USD_PER_1M` | برآورد اختیاری هزینهٔ ورودی امتیازدهی |
+| `OPENAI_SCORING_CACHED_INPUT_USD_PER_1M` | برآورد اختیاری هزینهٔ ورودی ذخیره‌شدهٔ امتیازدهی |
+| `OPENAI_SCORING_OUTPUT_USD_PER_1M` | برآورد اختیاری هزینهٔ خروجی امتیازدهی |
+
+الگوهای `OPENAI_*_REASONING_EFFORT` و `OPENAI_*_USD_PER_1M` در مستندات به متغیرهای جداگانهٔ دو مرحلهٔ استخراج ادعا و امتیازدهی در همین جدول اشاره دارند.
+
+<div dir="rtl" lang="fa">
+
+شناسهٔ مدل یا قیمت را از نمونه‌ای قدیمی کپی نکنید. پیش از هر ممیزی، مستندات رسمی جاری و دسترسی حساب خود را بررسی کنید.
+
+## ذخیره‌سازی
+
+مقدار پیش‌فرض `WORKSPACE_DIR` در Docker برابر `/workspace` است. از یک فضای اختصاصی و دارای کنترل دسترسی استفاده کنید و آن را به ریشهٔ مخزن، پوشهٔ خانه یا ریشهٔ وب عمومی اشاره ندهید. در Linux می‌توانید `LOCAL_UID` و `LOCAL_GID` را برای مالکیت فایل‌های اتصال‌یافته به مقادیر `id -u` و `id -g` تنظیم کنید.
 
 </div>

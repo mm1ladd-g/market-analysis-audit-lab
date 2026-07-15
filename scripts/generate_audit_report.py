@@ -104,6 +104,17 @@ def _text(value: Any, default: str = "") -> str:
     return str(value).strip() or default
 
 
+def _summary_text(value: Any, limit: int = 240) -> str:
+    """Keep summary-page disclosures compact; the complete record appears later."""
+    normalized = _text(value)
+    if len(normalized) <= limit:
+        return normalized
+    candidate = normalized[: limit - 1].rstrip()
+    if " " in candidate:
+        candidate = candidate.rsplit(" ", 1)[0]
+    return candidate.rstrip(".,;:") + "…"
+
+
 def _int(value: Any, default: int = 0) -> int:
     try:
         return int(value)
@@ -427,6 +438,97 @@ def _callout_fa(title: str, body: str, *, accent=GREEN_DARK, background=MINT) ->
     return table
 
 
+def _accountability_en(st: dict[str, ParagraphStyle], source: Mapping[str, Any]) -> Table:
+    disclosure = _text(source.get("relationship_disclosure"), "Not declared")
+    contact = _text(source.get("correction_contact"), "Not supplied")
+    policy = _text(source.get("correction_policy_url"))
+    rows: list[Flowable] = [
+        Paragraph("Relationship disclosure and corrections", st["h3"]),
+        Paragraph(f"Declared relationship: {_escape(disclosure)}", st["body"]),
+        Paragraph(f"Correction or challenge requests: {_escape(contact)}", st["body"]),
+    ]
+    if policy:
+        rows.append(Paragraph(f"Correction policy: {_escape(policy)}", st["body"]))
+    table = Table([[rows]], colWidths=[A4[0] - 36 * mm])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), MINT),
+        ("LINEBEFORE", (0, 0), (0, -1), 4, GREEN_DARK),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    return table
+
+
+def _accountability_fa(st: dict[str, ParagraphStyle], source: Mapping[str, Any]) -> Table:
+    disclosure = _text(source.get("relationship_disclosure"), "اعلام نشده است")
+    contact = _text(source.get("correction_contact"), "ارائه نشده است")
+    policy = _text(source.get("correction_policy_url"))
+    rows: list[Flowable] = [
+        _fa("شفاف‌سازی رابطه و مسیر اصلاح", "h3"),
+        _fa("رابطه اعلام‌شده", "metric_label"),
+        _dynamic_fa(disclosure, "body", st["body"]),
+        _fa("درخواست اصلاح یا اعتراض", "metric_label"),
+        _dynamic_fa(contact, "body", st["body"]),
+    ]
+    if policy:
+        rows.extend([
+            _fa("سیاست اصلاحات", "metric_label"),
+            _dynamic_fa(policy, "body", st["body"]),
+        ])
+    table = Table([[rows]], colWidths=[A4[0] - 36 * mm])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), MINT),
+        ("LINEAFTER", (0, 0), (0, -1), 4, GREEN_DARK),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    return table
+
+
+def _relationship_summary_fa(
+    st: dict[str, ParagraphStyle], source: Mapping[str, Any]
+) -> Table:
+    disclosure = _summary_text(source.get("relationship_disclosure"))
+    rows: list[Flowable] = [
+        _fa("رابطه اعلام‌شده · متن کامل و مسیر اصلاح در بخش ۰۳", "metric_label"),
+        _dynamic_fa(disclosure, "small", st["small"]),
+    ]
+    table = Table([[rows]], colWidths=[A4[0] - 36 * mm])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), MINT),
+        ("LINEAFTER", (0, 0), (0, -1), 4, GREEN_DARK),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    return table
+
+
+def _relationship_summary_en(
+    st: dict[str, ParagraphStyle], source: Mapping[str, Any]
+) -> Table:
+    disclosure = _summary_text(source.get("relationship_disclosure"))
+    rows: list[Flowable] = [
+        Paragraph("RELATIONSHIP DISCLOSURE · FULL RECORD AND CORRECTIONS IN SECTION 03", st["metric_label"]),
+        Paragraph(_escape(disclosure), st["small"]),
+    ]
+    table = Table([[rows]], colWidths=[A4[0] - 36 * mm])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), MINT),
+        ("LINEBEFORE", (0, 0), (0, -1), 4, GREEN_DARK),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    return table
+
+
 def _table(rows: list[list[Any]], widths: list[float], *, rtl: bool = False) -> Table:
     table = Table(rows, colWidths=widths, repeatRows=1, hAlign="RIGHT" if rtl else "LEFT")
     table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), INK), ("TEXTCOLOR", (0, 0), (-1, 0), WHITE), ("GRID", (0, 0), (-1, -1), 0.35, LINE), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [WHITE, SOFT]), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("ALIGN", (0, 0), (-1, -1), "RIGHT" if rtl else "LEFT"), ("LEFTPADDING", (0, 0), (-1, -1), 6), ("RIGHTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 5.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5.5)]))
@@ -465,8 +567,8 @@ def _paint_dark_background(canvas) -> None:
     canvas.saveState()
     canvas.setFillColor(DARK)
     canvas.rect(0, 0, width, height, fill=1, stroke=0)
-    canvas.setFillAlpha(0.10)
     canvas.setFillColor(GREEN)
+    canvas.setFillAlpha(0.10)
     canvas.circle(width - 12 * mm, height - 22 * mm, 60 * mm, fill=1, stroke=0)
     canvas.circle(width + 8 * mm, 28 * mm, 82 * mm, fill=1, stroke=0)
     canvas.setFillAlpha(1)
@@ -583,6 +685,7 @@ def _build_farsi(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synthet
     outcome = _mapping(data.get("outcome_summary"))
     verification = _mapping(data.get("verification"))
     hashes = _mapping(data.get("tamper_evidence"))
+    accountability = _mapping(data.get("accountability"))
     project = _text(data.get("project_name"), "Market Analysis Audit Lab")
     analyst = _text(data.get("analyst_name"), "نام تحلیل‌گر ثبت نشده است")
     story: list[Flowable] = []
@@ -619,6 +722,8 @@ def _build_farsi(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synthet
     ]
     story.append(_metric_grid(status_cards))
     story.extend([Spacer(1, 2 * mm), _callout_fa("وضعیت اجرای فعلی", _status_fa(status), accent=AMBER if status != "audit_complete" else GREEN_DARK, background=AMBER_SOFT if status != "audit_complete" else MINT)])
+    if accountability:
+        story.extend([Spacer(1, 2 * mm), _relationship_summary_fa(st, accountability)])
     categories = _list(scope.get("categories"))
     if categories:
         story.extend([Spacer(1, 5 * mm), _fa("دامنه اعلام‌شده", "h2"), _fa("، ".join(_category_fa(item) for item in categories), "body")])
@@ -699,6 +804,8 @@ def _build_farsi(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synthet
             "Market-data providers or proxies may differ at exact boundary levels.",
         ]
     story.extend([Spacer(1, 6 * mm), _fa("محدودیت‌های ثبت‌شده", "h2"), *_bullets_fa(_fa_limitation(item) for item in limitations)])
+    if accountability:
+        story.extend([Spacer(1, 5 * mm), _accountability_fa(st, accountability)])
     story.extend([Spacer(1, 5 * mm), _fa("یکپارچگی فایل", "h2")])
     hash_items = [
         ("مانیفست", hashes.get("manifest_sha256")),
@@ -716,9 +823,6 @@ def _build_farsi(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synthet
         story.append(_fa("هش‌های اثر در payload فعلی موجود نیستند.", "body"))
     integrity_status = _text(verification.get("status"), _text(hashes.get("verification_status"), "در دسترس نیست"))
     story.extend([Spacer(1, 5 * mm), _callout_fa("وضعیت یکپارچگی فایل", f"وضعیت ثبت‌شده: {integrity_status}. این وضعیت فقط سازگاری فایل ثبت‌شده را نشان می‌دهد و صحت تحلیل یا مهارت شخص را گواهی نمی‌کند.", accent=AMBER, background=AMBER_SOFT)])
-    if synthetic:
-        story.extend([Spacer(1, 5 * mm), _callout_fa("نسخه نمایشی ساختگی", SYNTHETIC_FA, accent=CORAL, background=CORAL_SOFT)])
-    story.extend([Spacer(1, 6 * mm), _fa("نتیجه مسئولانه", "h2"), _fa("این سند فقط وضعیت و شواهد ثبت‌شده در payload را خلاصه می‌کند. تصمیم مالی نیازمند قضاوت مستقل، مدیریت ریسک و بررسی منبع است.", "body")])
     return story
 
 
@@ -730,6 +834,7 @@ def _build_english(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synth
     outcome = _mapping(data.get("outcome_summary"))
     verification = _mapping(data.get("verification"))
     hashes = _mapping(data.get("tamper_evidence"))
+    accountability = _mapping(data.get("accountability"))
     project = _text(data.get("project_name"), "Market Analysis Audit Lab")
     analyst = _text(data.get("analyst_name"), "Source analyst not supplied")
     story: list[Flowable] = [PageBackground(synthetic), Spacer(1, 14 * mm)]
@@ -762,6 +867,8 @@ def _build_english(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synth
         _metric_card_en(st, _fmt_count(audit.get("total_claims")), "STRUCTURED CLAIMS", "Claims present in the current payload"),
     ]))
     story.extend([Spacer(1, 2 * mm), _callout_en(st, "Current run status", _status_en(status), accent=AMBER if status != "audit_complete" else GREEN_DARK, background=AMBER_SOFT if status != "audit_complete" else MINT)])
+    if accountability:
+        story.extend([Spacer(1, 2 * mm), _relationship_summary_en(st, accountability)])
     categories = _list(scope.get("categories"))
     if categories:
         story.extend([Spacer(1, 5 * mm), Paragraph("Declared scope", st["h2"]), Paragraph(", ".join(_category_en(item) for item in categories), st["body"])])
@@ -839,6 +946,8 @@ def _build_english(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synth
             "Market-data providers or proxies may differ at exact boundary levels.",
         ]
     story.extend([Spacer(1, 6 * mm), Paragraph("Recorded limitations", st["h2"]), *_bullets_en(st, limitations)])
+    if accountability:
+        story.extend([Spacer(1, 5 * mm), _accountability_en(st, accountability)])
     story.extend([Spacer(1, 5 * mm), Paragraph("File integrity", st["h2"])])
     hash_items = [
         ("Source manifest", hashes.get("manifest_sha256")),
@@ -856,9 +965,6 @@ def _build_english(data: Mapping[str, Any], st: dict[str, ParagraphStyle], synth
         story.append(Paragraph("Artifact hashes are not available in the current payload.", st["body"]))
     integrity_status = _text(verification.get("status"), _text(hashes.get("verification_status"), "not available"))
     story.extend([Spacer(1, 5 * mm), _callout_en(st, "File-integrity status", f"Recorded status: {integrity_status}. This checks recorded file consistency only; it does not certify analytical truth, personal skill, or investment quality.", accent=AMBER, background=AMBER_SOFT)])
-    if synthetic:
-        story.extend([Spacer(1, 5 * mm), _callout_en(st, "Synthetic demonstration", SYNTHETIC_EN, accent=CORAL, background=CORAL_SOFT)])
-    story.extend([Spacer(1, 6 * mm), Paragraph("Responsible conclusion", st["h2"]), Paragraph("This document summarizes only the state and evidence recorded in the payload. Financial decisions require independent judgment, source review, and risk management.", st["body"])])
     return story
 
 

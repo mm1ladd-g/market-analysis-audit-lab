@@ -88,6 +88,15 @@ class BilingualPdfReportTests(unittest.TestCase):
                 "Incomplete 24-hour outcome windows remain insufficient evidence.",
                 "Market-data proxies may differ at exact boundary levels.",
             ],
+            "accountability": {
+                "relationship_disclosure": (
+                    "This synthetic audit was commissioned by the test publisher; the "
+                    "fictional analyst did not control extraction or scoring."
+                ),
+                "correction_contact": "corrections@example.com",
+                "correction_contact_href": "mailto:corrections@example.com",
+                "correction_policy_url": "https://audit.example.com/corrections",
+            },
         }
 
     def test_generates_persian_first_synthetic_report_without_brand_leakage(self) -> None:
@@ -114,11 +123,16 @@ class BilingualPdfReportTests(unittest.TestCase):
             if "FULL EVIDENCE REPORT / ENGLISH EDITION" in text
         )
         self.assertGreater(english_cover, 0)
+        self.assertIn("This synthetic audit was commissioned", page_text[1])
+        self.assertIn("RELATIONSHIP DISCLOSURE", page_text[english_cover + 1])
+        self.assertIn("This synthetic audit was commissioned", page_text[english_cover + 1])
         joined = "\n".join(page_text)
         self.assertIn("SYNTHETIC DEMO", joined)
         self.assertIn("Scenario-outcome alignment is not a trading win rate", joined)
         self.assertIn("not certify analytical truth", joined)
         self.assertIn("Fictional Research Presenter", joined)
+        self.assertIn("Relationship disclosure and corrections", joined)
+        self.assertIn("corrections@example.com", joined)
         image_objects = 0
         for page in reader.pages:
             resources = page.get("/Resources") or {}

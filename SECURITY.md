@@ -56,8 +56,27 @@ The model receives evidence as data, never as trusted instructions. Structured o
 - Pin and scan dependencies, actions, and container bases; produce an SBOM for releases.
 - Treat `/api/claims`, transcript excerpts, and reports as sensitive until approved for publication.
 
+## Reviewed scanner exception
+
+The repository keeps vulnerability-scan exceptions narrow, version-bound, and
+reviewable in `.grype.yaml`. As of 2026-07-16, the only exception is
+`CVE-2026-15308` for the CPython 3.14.6 binary. The advisory concerns a CPU
+denial of service in `html.parser.HTMLParser`; this application does not import
+that parser or provide a route that parses client-controlled HTML. Grype lists
+the fix only in Python 3.15.0, which is not yet a stable release. The exception
+must be removed when a stable patched CPython image is available and must be
+reviewed no later than 2026-10-31. It does not suppress findings for any other
+package, Python version, vulnerability, or severity.
+
 ## Security verification before release
 
 Run tests, a full-history secret scan, dependency and license review, static analysis, container vulnerability scan, SBOM generation, and `docker history` inspection. Verify a clean clone can build and run the synthetic demo without any credential or private instance artifact.
+
+Container release gates fail on every high or critical vulnerability for which
+the scanner identifies an available fix. Findings without a known fix are still
+reported and retained with the SBOM for review, but they do not automatically
+block a release: upstream and distribution scanners can disagree about package
+applicability, and an unavailable fix cannot be applied reproducibly. A scoped
+exception requires a documented reachability assessment as described above.
 
 Security controls reduce risk; they do not certify the software for financial, safety-critical, or regulated use.

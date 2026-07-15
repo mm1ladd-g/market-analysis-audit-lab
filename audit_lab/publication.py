@@ -5,12 +5,12 @@ import re
 from pathlib import Path
 from typing import Any
 
-from audit_lab.settings import Settings
+from audit_lab.settings import Settings, is_valid_public_accountability_record
 from audit_lab.utils.hash import sha256_bytes, sha256_json
 
 
-PUBLICATION_SNAPSHOT_SCHEMA_VERSION = "public-artifact-set-v1"
-PUBLICATION_BINDING_SCHEMA_VERSION = "publication-review-binding-v1"
+PUBLICATION_SNAPSHOT_SCHEMA_VERSION = "public-artifact-set-v2"
+PUBLICATION_BINDING_SCHEMA_VERSION = "publication-review-binding-v2"
 PUBLICATION_MANIFEST_NAME = "publication_manifest.json"
 REPORT_PRIORITY_NAMES = (
     "market_analysis_audit_report.pdf",
@@ -80,12 +80,15 @@ def build_publication_binding(
     evidence_review_binding: dict[str, Any],
 ) -> dict[str, Any]:
     evidence_binding = dict(evidence_review_binding)
+    accountability = settings.require_publication_accountability()
     evidence_hash = evidence_binding.get("binding_sha256")
     evidence_core = dict(evidence_binding)
     evidence_core.pop("binding_sha256", None)
     if (
         settings.publication_mode != "public"
         or evidence_binding.get("publication_mode") != "public"
+        or evidence_binding.get("accountability") != accountability
+        or not is_valid_public_accountability_record(accountability)
         or not isinstance(evidence_hash, str)
         or sha256_json(evidence_core) != evidence_hash
     ):
@@ -133,6 +136,7 @@ def build_publication_binding(
         and publication.get("mode") == "public"
         and publication.get("ready") is True
         and bool(publication.get("public_claim_ledger")) == settings.public_claim_ledger
+        and dashboard.get("accountability") == accountability
     ):
         raise SystemExit(
             "Publication review requires a dashboard regenerated after evidence acceptance."
@@ -144,6 +148,7 @@ def build_publication_binding(
         "collection_id": evidence_binding.get("collection_id"),
         "evidence_review_binding_sha256": evidence_hash,
         "public_claim_ledger": settings.public_claim_ledger,
+        "accountability": accountability,
         "artifacts": artifacts,
     }
     binding["binding_sha256"] = sha256_json(binding)
@@ -162,11 +167,13 @@ def build_publication_snapshot(
     publication_reviewed_at_utc: str | None,
 ) -> dict[str, Any]:
     evidence_binding = dict(evidence_review_binding)
+    accountability = evidence_binding.get("accountability")
     evidence_hash = evidence_binding.get("binding_sha256")
     evidence_core = dict(evidence_binding)
     evidence_core.pop("binding_sha256", None)
     if (
         evidence_binding.get("publication_mode") != "public"
+        or not is_valid_public_accountability_record(accountability)
         or not isinstance(evidence_hash, str)
         or sha256_json(evidence_core) != evidence_hash
     ):
@@ -181,6 +188,7 @@ def build_publication_snapshot(
         and binding.get("publication_mode") == "public"
         and binding.get("collection_id") == evidence_binding.get("collection_id")
         and binding.get("evidence_review_binding_sha256") == evidence_hash
+        and binding.get("accountability") == accountability
         and isinstance(binding_hash, str)
         and sha256_json(binding_core) == binding_hash
     ):
@@ -196,6 +204,12 @@ def build_publication_snapshot(
     )
     if dashboard_bytes is None:
         raise SystemExit("Cannot publish; dashboard changed after publication acceptance.")
+    try:
+        dashboard = json.loads(dashboard_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SystemExit("Cannot publish; the accepted dashboard is unreadable.") from exc
+    if not isinstance(dashboard, dict) or dashboard.get("accountability") != accountability:
+        raise SystemExit("Cannot publish; dashboard accountability metadata is invalid.")
     report_record = artifacts.get("report")
     if report_record is not None:
         report_name = report_record.get("path") if isinstance(report_record, dict) else None
@@ -240,6 +254,7 @@ def build_publication_snapshot(
         "evidence_review_binding": evidence_binding,
         "publication_binding": binding,
         "public_claim_ledger": public_claim_ledger,
+        "accountability": accountability,
         "artifacts": artifacts,
     }
     snapshot["snapshot_sha256"] = sha256_json(snapshot)
@@ -271,6 +286,10 @@ def load_verified_publication_snapshot(settings: Settings) -> dict[str, Any] | N
     if settings.publication_mode != "public":
         return None
     try:
+        configured_accountability = settings.require_publication_accountability()
+    except SystemExit:
+        return None
+    try:
         manifest = json.loads(publication_manifest_path(settings).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
@@ -281,6 +300,7 @@ def load_verified_publication_snapshot(settings: Settings) -> dict[str, Any] | N
     manifest_core.pop("snapshot_sha256", None)
     if (
         manifest.get("schema_version") != PUBLICATION_SNAPSHOT_SCHEMA_VERSION
+        or manifest.get("accountability") != configured_accountability
         or not isinstance(recorded_snapshot_hash, str)
         or sha256_json(manifest_core) != recorded_snapshot_hash
     ):
@@ -306,6 +326,7 @@ def load_verified_publication_snapshot(settings: Settings) -> dict[str, Any] | N
     if (
         evidence_binding.get("publication_mode") != "public"
         or evidence_binding.get("collection_id") != manifest.get("collection_id")
+        or not is_valid_public_accountability_record(evidence_binding.get("accountability"))
         or not isinstance(evidence_hash, str)
         or sha256_json(evidence_core) != evidence_hash
     ):
@@ -318,6 +339,8 @@ def load_verified_publication_snapshot(settings: Settings) -> dict[str, Any] | N
         or binding.get("publication_mode") != "public"
         or binding.get("collection_id") != manifest.get("collection_id")
         or binding.get("evidence_review_binding_sha256") != evidence_hash
+        or binding.get("accountability") != evidence_binding.get("accountability")
+        or manifest.get("accountability") != binding.get("accountability")
         or review.get("binding_sha256") != binding_hash
         or not isinstance(binding_hash, str)
         or sha256_json(binding_core) != binding_hash
@@ -351,6 +374,7 @@ def load_verified_publication_snapshot(settings: Settings) -> dict[str, Any] | N
         and dashboard_publication.get("ready") is True
         and bool(dashboard_publication.get("public_claim_ledger"))
         == bool(manifest.get("public_claim_ledger"))
+        and dashboard.get("accountability") == manifest.get("accountability")
     ):
         return None
 

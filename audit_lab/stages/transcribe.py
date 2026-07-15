@@ -182,7 +182,7 @@ def run_transcription_fallback(settings: Settings, *, client: OpenAI | None = No
     settings.require_source_configuration()
     if settings.openai_transcription_model != "whisper-1":
         raise SystemExit(
-            "The v0.1 timed-transcript adapter requires OPENAI_TRANSCRIPTION_MODEL=whisper-1 "
+            "The timed-transcript adapter requires OPENAI_TRANSCRIPTION_MODEL=whisper-1 "
             "because it records segment timestamps."
         )
     category_overrides, category_rules = load_category_config(settings.category_overrides_file)

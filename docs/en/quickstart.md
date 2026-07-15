@@ -17,10 +17,11 @@ docker compose run --rm audit-lab python -m audit_lab.cli finalize --synthetic-d
 docker compose run --rm audit-lab python -m audit_lab.cli verify-final --synthetic-demo --workspace /workspace
 ```
 
-Demo execution is deterministic, fictional, and makes no provider or API calls. A fresh,
-uncached image build still needs network access. This is the only supported first run. Inspect
-`workspace/SYNTHETIC_DEMO.txt`, `workspace/final_audit_summary.json`, and
-`workspace/final_audit/file_hashes.csv`.
+The demo uses deterministic fictional fixtures and makes no provider or API calls. Each run
+records its own UTC creation time, so complete bundle and PDF hashes can differ between runs even
+when both verify successfully. A fresh, uncached image build still needs network access. This is
+the only supported first run. Inspect `workspace/SYNTHETIC_DEMO.txt`,
+`workspace/final_audit_summary.json`, and `workspace/final_audit/file_hashes.csv`.
 
 ## 2. Configure an authorized source
 

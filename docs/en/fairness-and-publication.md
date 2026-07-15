@@ -4,7 +4,7 @@
 
 ## Before analysis
 
-Freeze the subject/channel, inclusive window, category scope, inclusion rules, providers, proxies, scoring policy, maturity window, and known conflicts. Declare whether the work is independent, commissioned, sponsored, promotional, or performed for the subject. Do not change scope after seeing results without publishing both versions and the reason.
+Freeze the subject/channel, inclusive window, category scope, inclusion rules, providers, proxies, scoring policy, maturity window, and known conflicts. Record the relationship in `AUDIT_RELATIONSHIP_DISCLOSURE` as independent, commissioned, sponsored, promotional, or performed for the subject. Do not change scope after seeing results without publishing both versions and the reason.
 
 ## Before publication
 
@@ -12,6 +12,7 @@ Freeze the subject/channel, inclusive window, category scope, inclusion rules, p
 - Review exclusions, unknown categories, conditional triggers, invalidations, multi-leg ordering, proxy-sensitive results, denominator arithmetic, translations, and excerpts.
 - Identify the human reviewer and methodology/model/provider versions.
 - Separate evidence findings from promotional opinion.
+- Lead the relationship disclosure with the most material fact (for example commissioned, family, sponsored, promotional, or performed for the subject). Keep it adjacent to the hero/direct conclusion and on the first PDF summary page; retain the full disclosure and correction channel in the detailed section.
 - State that the audit does not establish profit, subscriber outcomes, future performance, or total analyst competence.
 - Use the minimum necessary source excerpt and confirm asset rights.
 - Give the named subject a reasonable opportunity to review factual source errors and provide a response without granting control over methodology.
@@ -39,6 +40,6 @@ After the evidence checkpoint, regenerate and inspect the dashboard, PDF, and an
 
 ## Corrections
 
-Publish a visible correction contact, immutable audit ID, date, version, and changelog. Classify a correction as source/metadata, transcript, market data, claim extraction, scoring, translation, or presentation. Never overwrite a released bundle silently: issue a new version, preserve the prior hash, explain impact on claims/denominator/headline, and link versions.
+Publish the validated `CORRECTION_CONTACT` beside an immutable audit ID, date, version, and changelog. Classify a correction as source/metadata, transcript, market data, claim extraction, scoring, translation, or presentation. Never overwrite a released bundle silently: issue a new version, preserve the prior hash, explain impact on claims/denominator/headline, and link versions.
 
 Good-faith criticism or reply is not automatically a scoring change. Evidence errors are. Retaliation, harassment, engagement manipulation, selective deletion, and hidden paid relationships are prohibited.

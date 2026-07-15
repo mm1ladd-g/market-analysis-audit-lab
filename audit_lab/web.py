@@ -13,7 +13,12 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from audit_lab.settings import Settings, get_settings
+from audit_lab import __version__
+from audit_lab.settings import (
+    Settings,
+    get_settings,
+    is_valid_public_accountability_record,
+)
 from audit_lab.publication import load_verified_publication_snapshot
 from audit_lab.stages.report import _hero_verdict, build_dashboard_data
 
@@ -26,7 +31,7 @@ settings = get_settings()
 mimetypes.add_type("font/woff2", ".woff2")
 app = FastAPI(
     title="Market Analysis Audit Lab",
-    version="0.1.1",
+    version=__version__,
     docs_url=None,
     redoc_url=None,
     openapi_url=None,
@@ -286,6 +291,17 @@ def _public_audit_summary(source: Any) -> dict[str, Any] | None:
     return safe
 
 
+def _public_accountability(source: Any) -> dict[str, Any] | None:
+    if not is_valid_public_accountability_record(source):
+        return None
+    return _pick(source, (
+        "relationship_disclosure",
+        "correction_contact",
+        "correction_contact_href",
+        "correction_policy_url",
+    ))
+
+
 def _public_dashboard_dto(
     payload: dict[str, Any],
     *,
@@ -361,6 +377,7 @@ def _public_dashboard_dto(
         "status", "ledger_valid", "accepted_for_current_artifacts", "reviewed_at_utc",
         "binding_sha256",
     ))
+    safe["accountability"] = _public_accountability(data.get("accountability"))
     # Only the fixed report-stage limitation register is admitted. Unknown strings are discarded.
     known_limitations = set(LIMITATION_TRANSLATIONS)
     limitations = [
@@ -476,7 +493,7 @@ def dashboard(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={"data": data},
+        context={"data": data, "app_version": __version__},
     )
 
 
@@ -485,6 +502,7 @@ def health() -> dict[str, Any]:
     return {
         "status": "ok",
         "service": "market-analysis-audit-lab",
+        "version": __version__,
         "workspace_ready": settings.workspace_dir.is_dir(),
     }
 
