@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a scoped improvement.
+title: "[Feature]: "
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What evidence, operator, or reproducibility problem should be solved?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Methodology, privacy, rights, and cost risks
+    validations:
+      required: true

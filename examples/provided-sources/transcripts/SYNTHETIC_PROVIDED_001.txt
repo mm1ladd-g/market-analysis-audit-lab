@@ -1,0 +1,3 @@
+This is a fictional transcript created only to demonstrate the import format.
+If the synthetic price holds above 100, the example scenario considers 106 possible.
+A close below 95 would invalidate that path and activate the fictional bearish alternative.

@@ -1,0 +1,42 @@
+schema_version: "1.0"
+project: "Market Analysis Audit Lab"
+policy:
+  default_code_and_docs_license: "Apache-2.0"
+  real_audit_instances_bundled: false
+  require_per_asset_provenance: true
+  prohibited_without_documented_rights:
+    - third-party portraits
+    - video or audio
+    - thumbnails
+    - full transcripts
+    - trademarks and brand films
+    - proprietary market data
+assets:
+  - path: "audit_lab/demo.py"
+    description: "Synthetic demo generator; no real identity, channel, transcript, price, or event"
+    license: "Apache-2.0"
+    source: "original-project-work"
+  - path: "CODE_OF_CONDUCT.md"
+    description: "Code of Conduct adapted from Contributor Covenant 2.1"
+    license: "CC-BY-4.0"
+    source: "https://www.contributor-covenant.org/version/2/1/code_of_conduct.html"
+  - path: "CODE_OF_CONDUCT.fa.md"
+    description: "Project Persian translation/adaptation of the Contributor Covenant-based policy"
+    license: "CC-BY-4.0"
+    source: "project-translation"
+  - path: "DCO"
+    description: "Developer Certificate of Origin 1.1"
+    license: "verbatim-copy-permission"
+    source: "https://developercertificate.org/"
+  - path_glob: "audit_lab/static/fonts/Vazirmatn*"
+    description: "Optional Persian typeface files; present only when shipped with their OFL notice"
+    license: "OFL-1.1"
+    source: "https://github.com/rastikerdar/vazirmatn"
+    required_notice_glob: "audit_lab/static/fonts/OFL*"
+external_operator_assets:
+  bundled: false
+  license: "not-covered-by-project-license"
+  requirements:
+    - "Record owner, source URL, retrieval date, license or permission, permitted uses, and expiry."
+    - "Do not publish an asset merely because it was publicly accessible."
+    - "Keep private-instance assets outside the source repository and container image."

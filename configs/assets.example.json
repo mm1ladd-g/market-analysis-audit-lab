@@ -1,0 +1,22 @@
+{
+  "asset_sources": {
+    "BTC-USD": {
+      "series_key": "BTC-USD",
+      "note": "Binance BTC/USDT spot used as the configured BTC/USD benchmark"
+    },
+    "XAUUSD": {
+      "series_key": "GC=F",
+      "note": "Example futures proxy only; pair GC_F.csv with GC_F.metadata.json and disclose contract construction"
+    },
+    "SPX": {
+      "series_key": "SPX-CASH",
+      "note": "Example operator-defined cash-index key; use licensed evidence matching the analyzed instrument"
+    }
+  },
+  "binance_series": {
+    "BTC-USD": "BTCUSDT",
+    "ETH-USD": "ETHUSDT",
+    "SOL-USD": "SOLUSDT",
+    "ETH-BTC": "ETHBTC"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "notice": "Every record in this example is fictional and synthetic.",
+  "channel_id": "UC_SYNTHETIC_PROVIDED_NOT_REAL",
+  "videos": [
+    {
+      "video_id": "SYNTHETIC_PROVIDED_001",
+      "title": "Synthetic Bitcoin decision map — example only",
+      "upload_date": "2024-01-03",
+      "published_at_utc": "2024-01-03T12:00:00+00:00",
+      "webpage_url": "https://example.invalid/synthetic-provided-video",
+      "duration_seconds": 420,
+      "category": "crypto",
+      "transcript_language": "en",
+      "transcript_path": "transcripts/SYNTHETIC_PROVIDED_001.txt",
+      "description": "Synthetic documentation fixture; no real person, channel, or market event."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# Runtime evidence and generated reports are never source code
+workspace/
+output/
+tmp/
+reports/
+exports/
+recordings/
+*.zip
+*.tar
+*.tar.gz
+*.pdf
+!docs/**/*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+build/
+dist/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local operator configuration/data
+configs/local/
+market-data/
+*.local.json
+*.local.yml
+*.local.yaml

@@ -1,0 +1,56 @@
+services:
+  audit-lab:
+    profiles: [tools]
+    image: market-analysis-audit-lab:local
+    build:
+      context: .
+      target: runtime
+    env_file:
+      - .env
+    environment:
+      HOME: /tmp
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    volumes:
+      - ./workspace:/workspace
+      - ./configs:/app/configs:ro
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 512
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    init: true
+
+  audit-web:
+    image: market-analysis-audit-lab:local
+    build:
+      context: .
+      target: runtime
+    environment:
+      PROJECT_NAME: "${PROJECT_NAME:-Market Analysis Audit Lab}"
+      ANALYST_NAME: "${ANALYST_NAME:-}"
+      START_DATE: "${START_DATE:-2024-01-01}"
+      END_DATE: "${END_DATE:-2024-01-31}"
+      MAX_AUDIT_DAYS: "${MAX_AUDIT_DAYS:-120}"
+      AUDIT_SCOPE_CATEGORIES: "${AUDIT_SCOPE_CATEGORIES:-crypto,global_markets}"
+      REPORT_DEFAULT_LANGUAGE: "${REPORT_DEFAULT_LANGUAGE:-en}"
+      PUBLICATION_MODE: "${PUBLICATION_MODE:-private}"
+      PUBLIC_CLAIM_LEDGER: "false"
+      WORKSPACE_DIR: /workspace
+      HOME: /tmp
+    ports:
+      - "127.0.0.1:${HOST_PORT:-18765}:8080"
+    volumes:
+      - ./workspace/reports:/workspace/reports:ro
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    init: true
+    stop_grace_period: 15s

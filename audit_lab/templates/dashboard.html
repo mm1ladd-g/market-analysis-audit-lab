@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A local-first, reproducible market-analysis audit dashboard." />
+  <meta name="theme-color" content="#101312" />
+  <title>{{ data.project_name or "Market Analysis Audit Lab" }}</title>
+  <script>
+    try {
+      const requested = new URLSearchParams(location.search).get("lang");
+      const saved = localStorage.getItem("audit-lab-language");
+      const language = requested === "fa" || requested === "en" ? requested : (saved || "en");
+      document.documentElement.lang = language === "fa" ? "fa" : "en";
+      document.documentElement.dir = language === "fa" ? "rtl" : "ltr";
+    } catch (_) {}
+  </script>
+  <link rel="stylesheet" href="/static/app.css?v=0.1.0" />
+  <script src="/static/app.js?v=0.1.0" defer></script>
+</head>
+{% set audit = data.audit_summary or {} %}
+{% set scenario = data.scenario_profile or {} %}
+{% set scope = data.scope or {} %}
+{% set tamper = data.tamper_evidence or {} %}
+{% set outcome = data.outcome_summary or {} %}
+{% set complete = audit and scenario %}
+<body data-status="{{ data.status or 'waiting_for_manifest' }}">
+  <a class="skip-link" href="#content" data-en="Skip to audit content" data-fa="رفتن به محتوای ممیزی">Skip to audit content</a>
+
+  {% if data.synthetic_demo %}
+    <aside class="demo-banner" role="note" aria-label="Synthetic demonstration notice" data-en-aria="Synthetic demonstration notice" data-fa-aria="اطلاعیه نمایش مصنوعی">
+      <strong data-en="Synthetic demonstration" data-fa="نمایش مصنوعی">Synthetic demonstration</strong>
+      <span data-en="All identities, claims, prices, and outcomes in this workspace are fictional. This is not evidence about a real person or market event." data-fa="همه هویت‌ها، ادعاها، قیمت‌ها و نتایج این فضای کاری ساختگی هستند. این داده‌ها شاهدی درباره یک فرد یا رویداد واقعی بازار نیستند.">All identities, claims, prices, and outcomes in this workspace are fictional. This is not evidence about a real person or market event.</span>
+    </aside>
+  {% endif %}
+
+  {% if data.status == 'publication_unavailable' %}
+    <aside class="publication-banner publication-pending" role="status">
+      <strong data-en="Verified publication unavailable" data-fa="نسخه تأییدشده انتشار در دسترس نیست">Verified publication unavailable</strong>
+      <span data-en="No audit content is being served because the approved public artifact set could not be verified." data-fa="محتوای ممیزی نمایش داده نمی‌شود، زیرا مجموعه آثار عمومی تأییدشده قابل راستی‌آزمایی نبود.">No audit content is being served because the approved public artifact set could not be verified.</span>
+    </aside>
+  {% elif (data.publication or {}).mode == 'private' %}
+    <aside class="publication-banner publication-private" role="status">
+      <strong data-en="Private preview" data-fa="پیش‌نمایش خصوصی">Private preview</strong>
+      <span data-en="This workspace has not been released for public publication. PDF and claim-ledger downloads are disabled." data-fa="این فضای کاری هنوز برای انتشار عمومی آزاد نشده است. دانلود PDF و دفتر ادعا غیرفعال است.">This workspace has not been released for public publication. PDF and claim-ledger downloads are disabled.</span>
+    </aside>
+  {% elif data.status == 'human_review_pending' %}
+    <aside class="publication-banner publication-pending" role="status">
+      <strong data-en="Human review pending" data-fa="در انتظار بازبینی انسانی">Human review pending</strong>
+      <span data-en="The automated stages are complete, but a human has not accepted the current evidence and scoring hashes for publication." data-fa="مراحل خودکار کامل شده‌اند، اما هنوز یک بازبین انسانی هش‌های فعلی شواهد و امتیازدهی را برای انتشار نپذیرفته است.">The automated stages are complete, but a human has not accepted the current evidence and scoring hashes for publication.</span>
+    </aside>
+  {% endif %}
+
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="Market Analysis Audit Lab">
+      <span>AUDIT / LAB</span>
+      <small>{% if (data.publication or {}).mode == 'public' %}PUBLIC{% else %}PRIVATE PREVIEW{% endif %} v0.1</small>
+    </a>
+    <nav aria-label="Audit sections" data-en-aria="Audit sections" data-fa-aria="بخش‌های ممیزی">
+      {% if complete %}
+        <a href="#structure" data-en="Structure" data-fa="ساختار">Structure</a>
+        <a href="#outcomes" data-en="Outcomes" data-fa="نتایج">Outcomes</a>
+        <a href="#coverage" data-en="Coverage" data-fa="پوشش">Coverage</a>
+        <a href="#integrity" data-en="Integrity" data-fa="یکپارچگی">Integrity</a>
+      {% endif %}
+      <a href="/api/dashboard" data-en="Data" data-fa="داده">Data</a>
+      {% if data.report_available %}<a href="/report" data-en="PDF" data-fa="PDF">PDF</a>{% endif %}
+    </nav>
+    <div class="language-switch" role="group" aria-label="Language" data-en-aria="Language" data-fa-aria="زبان">
+      <button type="button" data-language="en" aria-pressed="true">EN</button>
+      <button type="button" data-language="fa" aria-pressed="false">فا</button>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="status-line">
+            <span class="status-dot" aria-hidden="true"></span>
+            {% if data.status == "publication_unavailable" %}
+              <span data-en="Verified publication unavailable" data-fa="نسخه تأییدشده انتشار در دسترس نیست">Verified publication unavailable</span>
+            {% elif data.status == "audit_complete" %}
+              <span data-en="Audit complete" data-fa="ممیزی کامل است">Audit complete</span>
+            {% elif data.status == "human_review_pending" %}
+              <span data-en="Automated audit complete · human review pending" data-fa="ممیزی خودکار کامل · در انتظار بازبینی انسانی">Automated audit complete · human review pending</span>
+            {% elif data.status == "private_preview" %}
+              <span data-en="Private audit preview" data-fa="پیش‌نمایش خصوصی ممیزی">Private audit preview</span>
+            {% elif data.status == "integrity_warning" %}
+              <span data-en="Integrity review required" data-fa="بازبینی یکپارچگی لازم است">Integrity review required</span>
+            {% elif data.status == "claims_complete" %}
+              <span data-en="Claims extracted · outcomes pending" data-fa="ادعاها استخراج شده‌اند · نتایج در انتظار است">Claims extracted · outcomes pending</span>
+            {% elif data.status == "collection_verified" %}
+              <span data-en="Collection verified · analysis pending" data-fa="مجموعه تأیید شده · تحلیل در انتظار است">Collection verified · analysis pending</span>
+            {% else %}
+              <span data-en="Waiting for local evidence" data-fa="در انتظار شواهد محلی">Waiting for local evidence</span>
+            {% endif %}
+          </div>
+          {% if complete %}
+            <h1 id="hero-title" data-en="Evidence first. Conclusions with boundaries." data-fa="اول شواهد؛ سپس نتیجه‌گیری با مرزهای روشن.">Evidence first. Conclusions with boundaries.</h1>
+            <p class="hero-lead" data-en="This public view separates analytical structure, scenario activation, observed outcomes, evidence coverage, and declared limitations. Every number should be read in that context." data-fa="این نمای عمومی، ساختار تحلیل، فعال‌شدن سناریو، نتیجه مشاهده‌شده، پوشش شواهد و محدودیت‌های اعلام‌شده را از هم جدا می‌کند. هر عدد باید در همین زمینه خوانده شود.">This public view separates analytical structure, scenario activation, observed outcomes, evidence coverage, and declared limitations. Every number should be read in that context.</p>
+          {% elif data.status == "publication_unavailable" %}
+            <h1 id="hero-title" data-en="The approved public snapshot is not available." data-fa="نسخه عمومی تأییدشده در دسترس نیست.">The approved public snapshot is not available.</h1>
+            <p class="hero-lead" data-en="This page fails closed when any approved dashboard, PDF, or optional claim-ledger artifact no longer matches its publication review." data-fa="اگر هر یک از آثار تأییدشده داشبورد، PDF یا دفتر اختیاری ادعا دیگر با بازبینی انتشار یکسان نباشد، این صفحه محتوا را نمایش نمی‌دهد.">This page fails closed when any approved dashboard, PDF, or optional claim-ledger artifact no longer matches its publication review.</p>
+          {% else %}
+            <h1 id="hero-title" data-en="The audit starts with local evidence." data-fa="ممیزی با شواهد محلی آغاز می‌شود.">The audit starts with local evidence.</h1>
+            <p class="hero-lead" data-en="No audit snapshot is available yet. The interface will populate after the local collection, extraction, outcome, scoring, and report stages produce reproducible artifacts." data-fa="هنوز تصویر ممیزی در دسترس نیست. پس از آن‌که مراحل محلی گردآوری، استخراج، نتیجه، امتیازدهی و گزارش، آثار بازتولیدپذیر تولید کنند، این صفحه تکمیل می‌شود.">No audit snapshot is available yet. The interface will populate after the local collection, extraction, outcome, scoring, and report stages produce reproducible artifacts.</p>
+          {% endif %}
+          <div class="hero-meta" aria-label="Audit context" data-en-aria="Audit context" data-fa-aria="زمینه ممیزی">
+            <span><small data-en="Period" data-fa="بازه">Period</small><b data-preserve-digits>{{ (data.date_range or {}).start or '—' }} → {{ (data.date_range or {}).end or '—' }}</b></span>
+            <span><small data-en="Evidence" data-fa="شواهد">Evidence</small><b data-en="Local-first" data-fa="ابتدا محلی">Local-first</b></span>
+            <span><small data-en="Review" data-fa="بازبینی">Review</small><b data-en="AI-assisted + human" data-fa="هوش مصنوعی + انسان">AI-assisted + human</b></span>
+          </div>
+        </div>
+
+        <aside class="boundary-card" aria-labelledby="boundary-title">
+          <p class="section-label" data-en="Interpretation boundary" data-fa="مرز تفسیر">Interpretation boundary</p>
+          <h2 id="boundary-title" data-en="What this audit does not establish" data-fa="این ممیزی چه چیزی را اثبات نمی‌کند">What this audit does not establish</h2>
+          <ul>
+            <li><span aria-hidden="true">01</span><b data-en="Not a trading win rate" data-fa="نرخ برد معاملاتی نیست">Not a trading win rate</b></li>
+            <li><span aria-hidden="true">02</span><b data-en="Not financial advice" data-fa="توصیه مالی نیست">Not financial advice</b></li>
+            <li><span aria-hidden="true">03</span><b data-en="Not a certification or endorsement" data-fa="گواهی یا تأییدیه نیست">Not a certification or endorsement</b></li>
+          </ul>
+          <p data-en="Scenario alignment does not measure entries, exits, position size, fees, risk, or subscriber profitability." data-fa="هم‌راستایی سناریو، ورود، خروج، اندازه موقعیت، کارمزد، ریسک یا سودآوری مخاطب را اندازه‌گیری نمی‌کند.">Scenario alignment does not measure entries, exits, position size, fees, risk, or subscriber profitability.</p>
+        </aside>
+      </div>
+
+      {% if complete %}
+        <dl class="metric-row" aria-label="Audit scope metrics" data-en-aria="Audit scope metrics" data-fa-aria="شاخص‌های دامنه ممیزی">
+          <div><dt data-en="Videos audited" data-fa="ویدیوی ممیزی‌شده">Videos audited</dt><dd>{{ scope.videos_audited or scenario.total_videos or 0 }}</dd></div>
+          <div><dt data-en="Price claims" data-fa="ادعای قیمتی">Price claims</dt><dd>{{ scenario.total_claims or audit.total_claims or 0 }}</dd></div>
+          <div><dt data-en="Activated + judged" data-fa="فعال + ارزیابی‌شده">Activated + judged</dt><dd>{{ audit.counted_claims or 0 }}</dd></div>
+          <div><dt data-en="Evidence coverage" data-fa="پوشش شواهد">Evidence coverage</dt><dd>{{ audit.evidence_coverage_percent or 0 }}<small>%</small></dd></div>
+        </dl>
+      {% else %}
+        <div class="waiting-rail" aria-label="Local audit stages" data-en-aria="Local audit stages" data-fa-aria="مراحل محلی ممیزی">
+          <span><i>01</i><b data-en="Collect" data-fa="گردآوری">Collect</b></span>
+          <span><i>02</i><b data-en="Extract" data-fa="استخراج">Extract</b></span>
+          <span><i>03</i><b data-en="Observe" data-fa="مشاهده">Observe</b></span>
+          <span><i>04</i><b data-en="Score" data-fa="امتیازدهی">Score</b></span>
+          <span><i>05</i><b data-en="Report" data-fa="گزارش">Report</b></span>
+        </div>
+        {% if data.status == "publication_unavailable" %}
+          <p class="waiting-message" data-en="The verified public audit snapshot is temporarily unavailable." data-fa="نسخه عمومی راستی‌آزمایی‌شده ممیزی موقتاً در دسترس نیست.">The verified public audit snapshot is temporarily unavailable.</p>
+        {% else %}
+          <p class="waiting-message" data-en="{{ data.message or 'Run the local audit pipeline to populate this page.' }}" data-fa="برای تکمیل این صفحه، مراحل محلی ممیزی را اجرا و تصویر گزارش را دوباره تولید کنید.">{{ data.message or "Run the local audit pipeline to populate this page." }}</p>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    {% if complete %}
+      <section class="section" id="structure" aria-labelledby="structure-title">
+        <header class="section-head">
+          <div><p class="section-label">01 / <span data-en="Analytical structure" data-fa="ساختار تحلیلی">Analytical structure</span></p><h2 id="structure-title" data-en="Measure how a scenario is framed before judging its outcome." data-fa="پیش از داوری نتیجه، نحوه صورت‌بندی سناریو را بسنجید.">Measure how a scenario is framed before judging its outcome.</h2></div>
+          <p data-en="Conditions, levels, alternative paths, and invalidations make an analysis more inspectable. They do not make it automatically correct." data-fa="شرط‌ها، سطوح، مسیرهای جایگزین و ابطال‌ها، تحلیل را قابل‌بررسی‌تر می‌کنند؛ اما آن را خودبه‌خود درست نمی‌کنند.">Conditions, levels, alternative paths, and invalidations make an analysis more inspectable. They do not make it automatically correct.</p>
+        </header>
+        <div class="structure-grid">
+          <article class="structure-summary">
+            <span data-en="Average depth" data-fa="عمق میانگین">Average depth</span>
+            <strong>{{ scenario.average_claims_per_video or 0 }}</strong>
+            <p data-en="price claims per audited video" data-fa="ادعای قیمتی در هر ویدیوی ممیزی‌شده">price claims per audited video</p>
+          </article>
+          <div class="measure-list">
+            <div class="measure">
+              <div><span data-en="Explicit condition" data-fa="شرط صریح">Explicit condition</span><b>{{ scenario.explicit_condition_percent or 0 }}%</b></div>
+              <i role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ scenario.explicit_condition_percent or 0 }}" data-en-aria="Claims with an explicit condition" data-fa-aria="ادعاهای دارای شرط صریح"><span style="--value: {{ scenario.explicit_condition_percent or 0 }}%"></span></i>
+              <small>{{ scenario.explicit_condition_claims or 0 }} / {{ scenario.total_claims or 0 }}</small>
+            </div>
+            <div class="measure">
+              <div><span data-en="Price level stated" data-fa="سطح قیمت بیان‌شده">Price level stated</span><b>{{ scenario.level_claim_percent or 0 }}%</b></div>
+              <i role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ scenario.level_claim_percent or 0 }}" data-en-aria="Claims containing price levels" data-fa-aria="ادعاهای دارای سطح قیمت"><span style="--value: {{ scenario.level_claim_percent or 0 }}%"></span></i>
+              <small>{{ scenario.level_claims or 0 }} / {{ scenario.total_claims or 0 }}</small>
+            </div>
+            <div class="measure">
+              <div><span data-en="Bull + bear paths in one video" data-fa="مسیر صعودی + نزولی در یک ویدیو">Bull + bear paths in one video</span><b>{{ scenario.both_directions_video_percent or 0 }}%</b></div>
+              <i role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ scenario.both_directions_video_percent or 0 }}" data-en-aria="Videos mapping bullish and bearish paths" data-fa-aria="ویدیوهای دارای مسیر صعودی و نزولی"><span style="--value: {{ scenario.both_directions_video_percent or 0 }}%"></span></i>
+              <small>{{ scenario.both_directions_videos or 0 }} / {{ scenario.total_videos or 0 }}</small>
+            </div>
+            <div class="measure">
+              <div><span data-en="Explicit invalidation by video" data-fa="ابطال صریح در هر ویدیو">Explicit invalidation by video</span><b>{{ scenario.invalidation_video_percent or 0 }}%</b></div>
+              <i role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ scenario.invalidation_video_percent or 0 }}" data-en-aria="Videos containing an explicit invalidation" data-fa-aria="ویدیوهای دارای ابطال صریح"><span style="--value: {{ scenario.invalidation_video_percent or 0 }}%"></span></i>
+              <small>{{ scenario.invalidation_videos or 0 }} / {{ scenario.total_videos or 0 }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section outcome-section" id="outcomes" aria-labelledby="outcome-title">
+        <header class="section-head">
+          <div><p class="section-label">02 / <span data-en="Scenario outcomes" data-fa="نتایج سناریو">Scenario outcomes</span></p><h2 id="outcome-title" data-en="Count only scenarios that activated and became judgeable." data-fa="فقط سناریوهایی را بشمارید که فعال و قابل داوری شده‌اند.">Count only scenarios that activated and became judgeable.</h2></div>
+          <p data-en="A scenario that did not activate is reported separately, not treated as a miss. Partial alignment receives partial credit and remains visibly distinct." data-fa="سناریویی که فعال نشده، جداگانه گزارش می‌شود و شکست محسوب نمی‌شود. هم‌راستایی جزئی، اعتبار جزئی می‌گیرد و به‌وضوح جدا می‌ماند.">A scenario that did not activate is reported separately, not treated as a miss. Partial alignment receives partial credit and remains visibly distinct.</p>
+        </header>
+
+        <div class="outcome-layout">
+          <div class="outcome-primary">
+            <div class="outcome-number"><strong>{{ audit.at_least_partial_count or 0 }}</strong><span>/ {{ audit.counted_claims or 0 }}</span></div>
+            <p data-en="activated scenarios were fully or partly aligned with the audited outcome rules" data-fa="سناریوی فعال، طبق قواعد نتیجه ممیزی، کاملاً یا تا حدی هم‌راستا بودند">activated scenarios were fully or partly aligned with the audited outcome rules</p>
+            <div class="not-rate"><span aria-hidden="true">≠</span><b data-en="This is not a trading win rate" data-fa="این نرخ برد معاملاتی نیست">This is not a trading win rate</b></div>
+          </div>
+          <div class="distribution" role="img" aria-label="Activated scenario outcome distribution" data-en-aria="Activated scenario outcome distribution" data-fa-aria="توزیع نتیجه سناریوهای فعال">
+            <div class="distribution-bar" aria-hidden="true">
+              {% for item in audit.counted_results or [] %}<i class="result-{{ item.key }}" style="--share: {{ item.percent or 0 }}%"></i>{% endfor %}
+            </div>
+            <dl>
+              {% for item in audit.counted_results or [] %}
+                <div class="result-{{ item.key }}">
+                  <dt>
+                    {% if item.key == 'correct' %}<span data-en="Fully aligned" data-fa="کاملاً هم‌راستا">Fully aligned</span>
+                    {% elif item.key == 'partially_correct' %}<span data-en="Partly aligned" data-fa="تا حدی هم‌راستا">Partly aligned</span>
+                    {% else %}<span data-en="Missed" data-fa="محقق نشد">Missed</span>{% endif %}
+                  </dt>
+                  <dd><strong>{{ item.count or 0 }}</strong><small>{{ item.percent or 0 }}%</small></dd>
+                </div>
+              {% endfor %}
+            </dl>
+          </div>
+        </div>
+
+        <div class="resolution-row">
+          <div><span data-en="Outcome resolution" data-fa="تعیین نتیجه">Outcome resolution</span><strong>{{ audit.resolution_percent or 0 }}%</strong><small data-en="counted + not activated" data-fa="امتیازدار + فعال‌نشده">counted + not activated</small></div>
+          <div><span data-en="Activation among resolved" data-fa="فعال‌شدن در نتایج تعیین‌شده">Activation among resolved</span><strong>{{ audit.activation_percent or 0 }}%</strong><small data-en="activated + judged" data-fa="فعال + ارزیابی‌شده">activated + judged</small></div>
+          <div><span data-en="Evidence coverage" data-fa="پوشش شواهد">Evidence coverage</span><strong>{{ audit.evidence_coverage_percent or 0 }}%</strong><small data-en="usable price evidence" data-fa="شواهد قیمتی قابل استفاده">usable price evidence</small></div>
+        </div>
+
+        {% if audit.excluded_results %}
+          <div class="excluded-row">
+            <p data-en="Reported outside the activated outcome distribution" data-fa="گزارش‌شده خارج از توزیع نتایج فعال">Reported outside the activated outcome distribution</p>
+            <dl>
+              {% for item in audit.excluded_results %}
+                <div><dt>
+                  {% if item.key == 'not_triggered' %}<span data-en="Scenario did not activate" data-fa="سناریو فعال نشد">Scenario did not activate</span>
+                  {% elif item.key == 'insufficient_data' %}<span data-en="Limited evidence" data-fa="شواهد محدود">Limited evidence</span>
+                  {% else %}<span data-en="Context, not a price call" data-fa="زمینه، نه ادعای قیمت">Context, not a price call</span>{% endif %}
+                </dt><dd>{{ item.count or 0 }} <small>· {{ item.percent_of_all or 0 }}%</small></dd></div>
+              {% endfor %}
+            </dl>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="section" id="coverage" aria-labelledby="coverage-title">
+        <header class="section-head">
+          <div><p class="section-label">03 / <span data-en="Category coverage" data-fa="پوشش دسته‌ها">Category coverage</span></p><h2 id="coverage-title" data-en="Compare markets without hiding evidence gaps." data-fa="بازارها را بدون پنهان‌کردن شکاف‌های شواهد مقایسه کنید.">Compare markets without hiding evidence gaps.</h2></div>
+          <p data-en="Coverage answers whether suitable market data was available. Outcome alignment answers what happened only after a scenario activated." data-fa="پوشش نشان می‌دهد آیا داده مناسب بازار موجود بوده است. هم‌راستایی نتیجه فقط پس از فعال‌شدن سناریو، آنچه رخ داده را می‌سنجد.">Coverage answers whether suitable market data was available. Outcome alignment answers what happened only after a scenario activated.</p>
+        </header>
+        <div class="category-list">
+          {% for category in audit.categories or [] %}
+            <article class="category-row">
+              <header>
+                <span>
+                  {% if category.key == 'crypto' %}<b data-en="Crypto" data-fa="رمزارز">Crypto</b>
+                  {% elif category.key == 'global_markets' %}<b data-en="International markets" data-fa="بازارهای بین‌المللی">International markets</b>
+                  {% elif category.key == 'local_markets' %}<b data-en="Local markets" data-fa="بازارهای محلی">Local markets</b>
+                  {% else %}<b>{{ category.label }}</b>{% endif %}
+                  <small>{{ category.total_claims or 0 }} <i data-en="claims" data-fa="ادعا">claims</i></small>
+                </span>
+                <strong>{{ category.evidence_coverage_percent or 0 }}<small>%</small></strong>
+              </header>
+              <div class="coverage-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ category.evidence_coverage_percent or 0 }}" data-en-aria="Usable market evidence coverage" data-fa-aria="پوشش شواهد قابل استفاده بازار"><i style="--value: {{ category.evidence_coverage_percent or 0 }}%"></i></div>
+              <dl>
+                <div><dt data-en="Activated" data-fa="فعال‌شده">Activated</dt><dd>{{ category.counted_claims or 0 }}</dd></div>
+                <div><dt data-en="Fully aligned" data-fa="کاملاً هم‌راستا">Fully aligned</dt><dd>{{ category.correct or 0 }}</dd></div>
+                <div><dt data-en="Partly aligned" data-fa="تا حدی هم‌راستا">Partly aligned</dt><dd>{{ category.partial or 0 }}</dd></div>
+                <div><dt data-en="Missed" data-fa="محقق نشد">Missed</dt><dd>{{ category.incorrect or 0 }}</dd></div>
+              </dl>
+            </article>
+          {% else %}
+            <p class="empty-note" data-en="No category breakdown is available in this audit snapshot." data-fa="در این تصویر ممیزی، تفکیک دسته‌ها موجود نیست.">No category breakdown is available in this audit snapshot.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="section integrity-section" id="integrity" aria-labelledby="integrity-title">
+        <header class="section-head">
+          <div><p class="section-label">04 / <span data-en="Integrity + provenance" data-fa="یکپارچگی + منشأ">Integrity + provenance</span></p><h2 id="integrity-title" data-en="Keep the evidence inspectable and the limits visible." data-fa="شواهد را قابل‌بررسی و محدودیت‌ها را آشکار نگه دارید.">Keep the evidence inspectable and the limits visible.</h2></div>
+          <p data-en="Hashes verify that captured files match the recorded bundle. They are not an independent timestamp, signature, or certification of analytical quality." data-fa="هش‌ها تأیید می‌کنند فایل‌های ثبت‌شده با بسته ضبط‌شده یکسان‌اند. آن‌ها مهر زمانی مستقل، امضا یا گواهی کیفیت تحلیل نیستند.">Hashes verify that captured files match the recorded bundle. They are not an independent timestamp, signature, or certification of analytical quality.</p>
+        </header>
+
+        <div class="integrity-grid">
+          <article class="verification-card">
+            <div class="verification-head"><span class="verification-mark" aria-hidden="true">{% if data.verification and data.verification.verified %}✓{% else %}!{% endif %}</span><div><small data-en="Collection verification" data-fa="راستی‌آزمایی مجموعه">Collection verification</small><h3>{% if data.verification and data.verification.verified %}<span data-en="Recorded files match" data-fa="فایل‌های ثبت‌شده یکسان‌اند">Recorded files match</span>{% else %}<span data-en="Review required" data-fa="بازبینی لازم است">Review required</span>{% endif %}</h3></div></div>
+            <dl class="hash-list">
+              <div><dt data-en="Manifest SHA-256" data-fa="SHA-256 فهرست">Manifest SHA-256</dt><dd><code data-preserve-digits>{{ tamper.manifest_sha256 or 'not available' }}</code></dd></div>
+              <div><dt data-en="Archive SHA-256" data-fa="SHA-256 آرشیو">Archive SHA-256</dt><dd><code data-preserve-digits>{{ tamper.archive_sha256 or 'not available' }}</code></dd></div>
+              <div><dt data-en="Market evidence SHA-256" data-fa="SHA-256 شواهد بازار">Market evidence SHA-256</dt><dd><code data-preserve-digits>{{ tamper.market_evidence_sha256 or 'not available' }}</code></dd></div>
+            </dl>
+            <p><strong>{{ tamper.file_hash_count or 0 }}</strong> <span data-en="recorded file hashes" data-fa="هش فایل ثبت‌شده">recorded file hashes</span></p>
+          </article>
+
+          <article class="provenance-card">
+            <p class="section-label" data-en="Market-data provenance" data-fa="منشأ داده بازار">Market-data provenance</p>
+            {% if outcome.providers %}
+              <ul>
+                {% for provider in outcome.providers %}
+                  <li><div><strong>{{ provider.name }}</strong><span>{{ provider.scope }}</span></div><dl><div><dt data-en="Resolution" data-fa="دقت زمانی">Resolution</dt><dd>{{ provider.resolution or '—' }}</dd></div><div><dt data-en="Series" data-fa="سری">Series</dt><dd>{{ provider.series_count or 0 }}</dd></div></dl></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="empty-note" data-en="Provider metadata is not available in this snapshot." data-fa="فراداده ارائه‌دهنده در این تصویر موجود نیست.">Provider metadata is not available in this snapshot.</p>
+            {% endif %}
+            <a class="text-link" href="/api/dashboard"><span data-en="Inspect public dashboard data" data-fa="بررسی داده عمومی داشبورد">Inspect public dashboard data</span><i aria-hidden="true">↗</i></a>
+          </article>
+        </div>
+
+        <div class="limitations">
+          <p class="section-label" data-en="Declared limitations" data-fa="محدودیت‌های اعلام‌شده">Declared limitations</p>
+          <ol>
+            {% for item in data.localized_limitations or [] %}
+              <li><span>{{ "%02d"|format(loop.index) }}</span><p data-en="{{ item.en }}" data-fa="{{ item.fa }}">{{ item.en }}</p></li>
+            {% else %}
+              <li><span>01</span><p data-en="No limitation register is available in this snapshot." data-fa="در این تصویر، فهرست محدودیت‌ها موجود نیست.">No limitation register is available in this snapshot.</p></li>
+            {% endfor %}
+          </ol>
+        </div>
+      </section>
+    {% else %}
+      <section class="section waiting-section" aria-labelledby="waiting-title">
+        <header class="section-head">
+          <div><p class="section-label">01 / <span data-en="Local-first state" data-fa="وضعیت ابتدا محلی">Local-first state</span></p><h2 id="waiting-title" data-en="Nothing is inferred before artifacts exist." data-fa="پیش از وجود آثار ممیزی، هیچ نتیجه‌ای استنباط نمی‌شود.">Nothing is inferred before artifacts exist.</h2></div>
+          <p data-en="The server reads the workspace snapshot locally. It does not invent metrics or replace missing evidence with remote content." data-fa="سرور تصویر فضای کاری را به‌صورت محلی می‌خواند. شاخصی اختراع نمی‌کند و شواهد مفقود را با محتوای راه‌دور جایگزین نمی‌سازد.">The server reads the workspace snapshot locally. It does not invent metrics or replace missing evidence with remote content.</p>
+        </header>
+        <div class="waiting-grid">
+          <article><span>01</span><h3 data-en="Prepare the workspace" data-fa="فضای کاری را آماده کنید">Prepare the workspace</h3><p data-en="Configure the source, date range, scope, and rights acknowledgement." data-fa="منبع، بازه زمانی، دامنه و تأیید حقوق استفاده را تنظیم کنید.">Configure the source, date range, scope, and rights acknowledgement.</p></article>
+          <article><span>02</span><h3 data-en="Run the audit stages" data-fa="مراحل ممیزی را اجرا کنید">Run the audit stages</h3><p data-en="Collect, preserve, extract, observe, score, and generate the local report snapshot." data-fa="گردآوری، حفظ، استخراج، مشاهده، امتیازدهی و تولید تصویر محلی گزارش را انجام دهید.">Collect, preserve, extract, observe, score, and generate the local report snapshot.</p></article>
+          <article><span>03</span><h3 data-en="Verify before publishing" data-fa="پیش از انتشار راستی‌آزمایی کنید">Verify before publishing</h3><p data-en="Review exclusions, limitations, evidence providers, and file hashes before sharing results." data-fa="پیش از اشتراک نتایج، موارد حذف‌شده، محدودیت‌ها، ارائه‌دهندگان شواهد و هش فایل‌ها را بازبینی کنید.">Review exclusions, limitations, evidence providers, and file hashes before sharing results.</p></article>
+        </div>
+        <a class="text-link" href="/health"><span data-en="Check service health" data-fa="بررسی سلامت سرویس">Check service health</span><i aria-hidden="true">↗</i></a>
+      </section>
+    {% endif %}
+
+    <section class="public-note" aria-labelledby="public-note-title">
+      <p class="section-label" data-en="Public interpretation note" data-fa="یادداشت تفسیر عمومی">Public interpretation note</p>
+      <h2 id="public-note-title" data-en="Use this record to inspect a method—not to outsource a financial decision." data-fa="از این سابقه برای بررسی روش استفاده کنید؛ نه برای واگذاری یک تصمیم مالی.">Use this record to inspect a method—not to outsource a financial decision.</h2>
+      <p data-en="Market analysis remains uncertain. Review the original evidence, assumptions, data sources, exclusions, and limitations before forming any conclusion." data-fa="تحلیل بازار همواره با عدم قطعیت همراه است. پیش از هر نتیجه‌گیری، شواهد اصلی، فرض‌ها، منابع داده، موارد حذف‌شده و محدودیت‌ها را بررسی کنید.">Market analysis remains uncertain. Review the original evidence, assumptions, data sources, exclusions, and limitations before forming any conclusion.</p>
+      <div><span data-en="Not financial advice" data-fa="توصیه مالی نیست">Not financial advice</span><span data-en="Not a certification" data-fa="گواهی نیست">Not a certification</span><span data-en="No profit claim" data-fa="بدون ادعای سود">No profit claim</span></div>
+      <nav class="public-actions" aria-label="Public audit resources" data-en-aria="Public audit resources" data-fa-aria="منابع عمومی ممیزی">
+        <a href="/api/dashboard" data-en="Dashboard data" data-fa="داده داشبورد">Dashboard data</a>
+        {% if data.claim_ledger_available %}<a href="/api/claims" data-en="Claim ledger" data-fa="دفتر ادعاها">Claim ledger</a>{% endif %}
+        {% if data.report_available %}<a href="/report" data-en="Download PDF" data-fa="دانلود PDF">Download PDF</a>{% endif %}
+      </nav>
+    </section>
+  </main>
+
+  <footer>
+    <span>Market Analysis Audit Lab · v0.1</span>
+    <span data-en="Local evidence · explicit rules · visible limits" data-fa="شواهد محلی · قواعد صریح · محدودیت‌های آشکار">Local evidence · explicit rules · visible limits</span>
+    {% if data.collection_id %}<code data-preserve-digits>{{ data.collection_id }}</code>{% endif %}
+  </footer>
+</body>
+</html>

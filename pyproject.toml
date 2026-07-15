@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools==83.0.0", "wheel==0.47.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "market-analysis-audit-lab"
+version = "0.1.0"
+description = "A local-first, Dockerized, AI-assisted evidence pipeline for auditing market-analysis videos."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{name = "Market Analysis Audit Lab contributors"}]
+keywords = ["audit", "market-analysis", "youtube", "openai", "reproducibility"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+  "fastapi==0.139.0",
+  "uvicorn[standard]==0.51.0",
+  "pydantic==2.13.4",
+  "pydantic-settings==2.14.2",
+  "python-dotenv==1.2.2",
+  "jinja2==3.1.6",
+  "pandas==3.0.3",
+  "yt-dlp[default]==2026.7.4",
+  "yt-dlp-ejs==0.8.0",
+  "deno==2.8.3",
+  "yfinance==1.5.1",
+  "openai==2.45.0",
+  "jsonschema==4.26.0",
+  "rich==15.0.0",
+  "python-slugify==8.0.4",
+  "reportlab==5.0.0",
+  "arabic-reshaper==3.0.1",
+  "python-bidi==0.6.11",
+  "pypdf==6.14.2",
+  "fonttools[woff]==4.63.0",
+]
+
+[project.scripts]
+market-audit = "audit_lab.cli:main"
+
+[project.urls]
+Repository = "https://github.com/mm1ladd-g/market-analysis-audit-lab"
+Documentation = "https://github.com/mm1ladd-g/market-analysis-audit-lab/blob/main/docs/en/index.md"
+Issues = "https://github.com/mm1ladd-g/market-analysis-audit-lab/issues"
+Changelog = "https://github.com/mm1ladd-g/market-analysis-audit-lab/blob/main/CHANGELOG.md"
+Releases = "https://github.com/mm1ladd-g/market-analysis-audit-lab/releases"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["audit_lab*"]
+
+[tool.setuptools.package-data]
+audit_lab = ["templates/*.html", "static/*.css", "static/*.js", "static/fonts/*", "prompts/*.md", "schemas/*.json"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+# Start with release-blocking syntax/name errors. Broader style modernization is
+# intentionally incremental so lint is a truthful gate rather than a waived backlog.
+select = ["E9", "F63", "F7", "F82"]

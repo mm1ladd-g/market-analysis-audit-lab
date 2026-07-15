@@ -1,0 +1,8 @@
+{
+  "video_overrides": {},
+  "keyword_rules": {
+    "crypto": ["bitcoin", "btc", "ethereum", "eth", "crypto", "بیت کوین", "کریپتو"],
+    "global_markets": ["gold", "xauusd", "nasdaq", "sp500", "forex", "طلا", "بازار جهانی"],
+    "local_markets": ["local market", "domestic market", "بازار داخلی"]
+  }
+}

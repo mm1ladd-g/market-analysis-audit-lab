@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ModelClaimExtraction",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["video_id", "claims", "extraction_notes"],
+  "properties": {
+    "video_id": {"type": "string", "minLength": 1},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_text", "claim_type", "source_excerpt", "source_line_start",
+          "source_line_end", "assets", "levels", "direction", "condition",
+          "invalidation_condition", "time_horizon", "normalized_horizon_hours",
+          "scoreability", "not_scoreable_reason", "extraction_confidence",
+          "human_review_required", "review_required_fields", "review_flags"
+        ],
+        "properties": {
+          "claim_text": {"type": "string", "minLength": 1},
+          "claim_type": {
+            "type": "string",
+            "enum": ["directional", "level", "scenario", "risk_warning", "macro_context", "not_scoreable"]
+          },
+          "source_excerpt": {"type": "string", "minLength": 1, "maxLength": 2000},
+          "source_line_start": {"type": "integer", "minimum": 1},
+          "source_line_end": {"type": "integer", "minimum": 1},
+          "assets": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "levels": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "direction": {"type": "string", "enum": ["bullish", "bearish", "neutral", "conditional"]},
+          "condition": {"type": ["string", "null"]},
+          "invalidation_condition": {"type": ["string", "null"]},
+          "time_horizon": {"type": ["string", "null"]},
+          "normalized_horizon_hours": {"type": ["integer", "null"], "enum": [24, 48, null]},
+          "scoreability": {
+            "type": "string",
+            "enum": ["scoreable", "conditional_scoreable", "not_scoreable"]
+          },
+          "not_scoreable_reason": {"type": ["string", "null"]},
+          "extraction_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "human_review_required": {"const": true},
+          "review_required_fields": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "claim_text", "claim_type", "assets", "levels", "direction",
+                "condition", "invalidation_condition", "time_horizon", "scoreability"
+              ]
+            }
+          },
+          "review_flags": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "ai_semantic_interpretation", "instruction_like_source_text",
+                "unsupported_time_horizon"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "extraction_notes": {"type": "array", "items": {"type": "string"}}
+  }
+}

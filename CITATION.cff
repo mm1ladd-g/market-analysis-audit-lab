@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use this software in research, cite the tagged release and its archived artifact."
+title: "Market Analysis Audit Lab"
+type: software
+authors:
+  - name: "Market Analysis Audit Lab contributors"
+abstract: >-
+  A local-first, Dockerized, AI-assisted system for producing reviewable,
+  hash-verifiable audits of authorized time-stamped market-analysis content.
+license: Apache-2.0
+version: 0.1.0
+date-released: 2026-07-15
+repository-code: "https://github.com/mm1ladd-g/market-analysis-audit-lab"
+url: "https://github.com/mm1ladd-g/market-analysis-audit-lab/releases/tag/v0.1.0"
+keywords:
+  - reproducible research
+  - market analysis
+  - evidence audit
+  - data provenance
+  - structured outputs
+  - Docker
+preferred-citation:
+  type: software
+  title: "Market Analysis Audit Lab"
+  authors:
+    - name: "Market Analysis Audit Lab contributors"
+  version: 0.1.0
+  license: Apache-2.0
+notes: >-
+  Cite the exact Git tag or commit, container digest, audit collection ID,
+  and final bundle SHA-256 when discussing a specific run.
