@@ -1,4 +1,4 @@
-FROM python:3.11.13-slim-bookworm@sha256:86adf8dbadc3d6e82ee5dd2c74bec2e1c2467cdad47886280501df722372d2e1 AS base
+FROM python:3.14.6-slim-trixie@sha256:d3400aa122fa42cf0af0dbe8ec3091b047eac5c8f7e3539f7135e86d855dc015 AS base
 
 ARG APP_UID=10001
 ARG APP_GID=10001
@@ -17,14 +17,14 @@ LABEL org.opencontainers.image.title="Market Analysis Audit Lab" \
 # resolution reviewable and repeatable instead of silently following a moving mirror.
 RUN rm -f /etc/apt/sources.list.d/debian.sources \
     && printf '%s\n' \
-      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260715T000000Z bookworm main' \
-      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260715T000000Z bookworm-updates main' \
-      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260715T000000Z bookworm-security main' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260715T000000Z trixie main' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/20260715T000000Z trixie-updates main' \
+      'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/20260715T000000Z trixie-security main' \
       > /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-      ca-certificates=20230311+deb12u1 \
-      ffmpeg=7:5.1.9-0+deb12u1 \
+      ca-certificates=20250419 \
+      ffmpeg=7:7.1.5-0+deb13u1 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid "${APP_GID}" auditlab \
     && useradd --uid "${APP_UID}" --gid "${APP_GID}" --create-home --shell /usr/sbin/nologin auditlab
