@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows [Semantic Versionin
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-07-16
+
+### Fixed
+
+- ZIP release archives now force UTC for Git archive generation, making their
+  embedded timestamps and SHA-256 hashes identical across host timezones.
+
 ## [0.1.3] - 2026-07-16
 
 ### Fixed
@@ -82,7 +89,8 @@ First public-source release.
 The annotated `v0.1.0` tag identifies the exact release commit after the checks in
 `docs/en/release-process.md` pass.
 
-[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/mm1ladd-g/market-analysis-audit-lab/compare/v0.1.0...v0.1.1
