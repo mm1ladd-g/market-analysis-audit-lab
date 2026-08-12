@@ -1,4 +1,4 @@
-FROM python:3.14.6-slim-trixie@sha256:d3400aa122fa42cf0af0dbe8ec3091b047eac5c8f7e3539f7135e86d855dc015 AS base
+FROM python:3.15.0rc1-slim-trixie@sha256:858b8c9b2c764d1a3076e2c2ed64fb3f76ca2ec068ec81c1c059d3a5fcc1088e AS base
 
 ARG APP_UID=10001
 ARG APP_GID=10001
